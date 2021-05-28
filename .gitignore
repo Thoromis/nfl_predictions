@@ -110,6 +110,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Data files
+unprocessed_nfl_data/*
+unprocessed_college_data/*
+
 # Spyder project settings
 .spyderproject
 .spyproject
