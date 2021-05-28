@@ -8,7 +8,7 @@ def classify_dataframe(data, classifiers):
 
 def classify_by_single_classifier(data, classifiers):
     for classifier in classifiers:
-        data['Classification' + classifier.name] = data.apply(axis=1, func=lambda x: classify_row(x, classifier))
+        data['Classification' + classifier.name] = data.apply(axis=1, func=lambda x: classify_row(x, [classifier]))
 
     # data['Classification_YearsInNFL'] = data.apply(axis=1, func=lambda x: classify_row(x, Classifier.BY_YEARS_IN_NFL))
     # data['Classification_Total_Yards'] = data.apply(axis=1, func=lambda x: classify_row(x, Classifier.BY_TOTAL_YARDS))

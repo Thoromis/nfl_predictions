@@ -11,7 +11,7 @@ def process_nfl_data():
     classifiers = classifier.standard_classifiers_wr()
 
     classifier.classify_dataframe(receivering_stats, classifiers)
-    classifier.classify_by_single_classifier(receivering_stats, classifiers)
+    # classifier.classify_by_single_classifier(receivering_stats, classifiers)
     # obsolete
     # receivering_stats['Classification'] = receivering_stats.apply(axis=1, func=lambda x: nfl.classify_receiver(x))
 

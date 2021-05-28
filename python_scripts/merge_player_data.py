@@ -12,3 +12,4 @@ def merge_player_data_from_files():
     # combine with other player data
 
     # write back to csv
+    nfl.write_nfl_players_to_csv(wr_merged, 'wr_merged.csv')

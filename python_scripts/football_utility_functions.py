@@ -37,8 +37,12 @@ def read_and_normalize_draft_file(file, position_column, after=2005, before=2020
     return draft_data
 
 
+def write_nfl_players_to_csv(data, filename):
+    data.to_csv('../processed_data/' + filename)
+
+
 def write_nfl_players_to_csv_no_stats(data, filename):
-    csv_data = data[['full_player_name', 'position', 'gsis_id', 'Classification']]
+    csv_data = data[['full_player_name', 'position', 'gsis_id', 'Classification_All']]
     csv_data.to_csv('../processed_data/' + filename)
 
 
