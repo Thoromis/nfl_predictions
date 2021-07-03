@@ -3,9 +3,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn import metrics
-from sklearn.metrics import confusion_matrix, plot_confusion_matrix, accuracy_score
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix, accuracy_score, roc_auc_score
 
 import utils.unit_keys as Units
+
+
+def encode_array_numeric(array):
+    result_array = []
+    for element in array:
+        if element == 'Bust':
+            result_array.append(0)
+        else:
+            result_array.append(1)
+    return result_array
 
 
 def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, unit_key):
@@ -13,6 +23,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     grid_searches = joblib.load('../ml_models/' + unit_key + '_trained_models.sav')
 
     unit_class = Units.parse_unit(unit_key)
+    scoring = grid_searches['Baseline'].scoring
 
     results_test_acc = []
     results_test_std = []
@@ -20,37 +31,24 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     results_train_std = []
     labels = []
 
-    for name in unit_class.names:
-        test_acc = np.mean(grid_searches[name].cv_results_['mean_test_score'])
-        results_test_acc.extend(grid_searches[name].cv_results_['mean_test_score'])
-        results_test_std.extend(grid_searches[name].cv_results_['std_test_score'])
-        results_train_acc.extend(grid_searches[name].cv_results_['mean_train_score'])
-        results_train_std.extend(grid_searches[name].cv_results_['std_train_score'])
-        for params in grid_searches[name].cv_results_['params']:
-            label = name
-            for param in params:
-                label = label + '_' + param + ':' + str(params[param])
-            labels.append(label)
-            # print("Accuracy for " + label + ":" + str(test_acc))
-
-    plt.barh(labels, results_test_acc)
-    locs, ylabels = plt.yticks()
-    plt.title(label='Test Accuracy Comparison')
-    plt.yticks(ticks=locs, labels=labels, fontsize=9)
-    plt.tight_layout()
-    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_test_acc.png')
-    plt.show()
-
-    plt.barh(labels, results_train_acc)
-    locs, ylabels = plt.yticks()
-    plt.title(label='Training Accuracy Comparison')
-    plt.yticks(ticks=locs, labels=labels, fontsize=9)
-    plt.tight_layout()
-    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_acc.png')
-    plt.show()
+    # for name in unit_class.names:
+    #    test_acc = np.mean(grid_searches[name].cv_results_['mean_test_score'])
+    #    results_test_acc.extend(grid_searches[name].cv_results_['mean_test_score'])
+    #    results_test_std.extend(grid_searches[name].cv_results_['std_test_score'])
+    #    results_train_acc.extend(grid_searches[name].cv_results_['mean_train_score'])
+    #    results_train_std.extend(grid_searches[name].cv_results_['std_train_score'])
+    #    for params in grid_searches[name].cv_results_['params']:
+    #        label = name
+    #        for param in params:
+    #            label = label + '_' + param + ':' + str(params[param])
+    #        labels.append(label)
+    #        # print("Accuracy for " + label + ":" + str(test_acc))
 
     train_accuracies = []
     test_accuracies = []
+    test_rocauc_scores = []
+    train_rocauc_scores = []
+
     for name in unit_class.names:
         gs_test = grid_searches[name]
 
@@ -58,6 +56,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
         label = name + str(gs_test.best_params_)
 
         y_test_pred = gs_test.predict(x_test)
+        y_train_pred = gs_test.predict(x_train)
 
         df_comparison = pd.DataFrame()
         df_comparison['Name'] = names_test['full_player_name']
@@ -67,7 +66,6 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
 
         print("Plotting some stats for model/params combination: " + label)
         # Confusion matrix
-        # conf_matrix = confusion_matrix(y_test, y_test_pred)
         plot_confusion_matrix(estimator=gs_test, X=x_test, y_true=y_test)
         plt.title(label=label + 'confusion matrix')
         plt.savefig('../ml_model_visualisations/' + unit_key + '/' + name + '_conf_matrix.png')
@@ -79,5 +77,52 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
         plt.savefig('../ml_model_visualisations/' + unit_key + '/' + name + '_roc_curve.png')
         plt.show()
 
+        y_test_num = encode_array_numeric(y_test['Classification_All'].values)
+        y_test_pred_num = encode_array_numeric(y_test_pred)
+        y_train_num = encode_array_numeric(y_train['Classification_All'].values)
+        y_train_pred_num = encode_array_numeric(y_train_pred)
+
+        test_rocauc = roc_auc_score(y_test_num, y_test_pred_num)
+        train_rocauc = roc_auc_score(y_train_num, y_train_pred_num)
+        test_rocauc_scores.append(test_rocauc)
+        train_rocauc_scores.append(train_rocauc)
+
         test_acc = accuracy_score(y_test, y_test_pred)
-        print("Accuracy for model: " + str(test_acc))
+        train_acc = accuracy_score(y_train, y_train_pred)
+        test_accuracies.append(test_acc)
+        train_accuracies.append(train_acc)
+        labels.append(label)
+
+    # RocAuc plots
+    plt.barh(labels, test_rocauc_scores)
+    locs, ylabels = plt.yticks()
+    plt.title(label='Test AUC Comparison')
+    plt.yticks(ticks=locs, labels=labels, fontsize=9)
+    plt.tight_layout()
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_test_auc.png')
+    plt.show()
+
+    plt.barh(labels, train_rocauc_scores)
+    locs, ylabels = plt.yticks()
+    plt.title(label='Training AUC Comparison')
+    plt.yticks(ticks=locs, labels=labels, fontsize=9)
+    plt.tight_layout()
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_auc.png')
+    plt.show()
+
+    # Accuracy plots
+    plt.barh(labels, test_accuracies)
+    locs, ylabels = plt.yticks()
+    plt.title(label='Test Accuracy Comparison')
+    plt.yticks(ticks=locs, labels=labels, fontsize=9)
+    plt.tight_layout()
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_test_acc.png')
+    plt.show()
+
+    plt.barh(labels, train_accuracies)
+    locs, ylabels = plt.yticks()
+    plt.title(label='Training Accuracy Comparison')
+    plt.yticks(ticks=locs, labels=labels, fontsize=9)
+    plt.tight_layout()
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_acc.png')
+    plt.show()

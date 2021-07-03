@@ -166,7 +166,7 @@ class RB:
         # 6 estimators, min_samples_split=3, min_samples_leaf=3, max_depth=5 (roc_auc=0.63)
         # 20 estimators, min_samples_split=7, min_samples_leaf=2, max_depth=5 (roc_auc=0.63)
         # 15 estimators, min_samples_split=3, min_samples_leaf=3, max_depth=80 (roc_auc=0.58)
-        'RandomForest': {'max_depth': [5, 10, 15, 20, 25],
+        'RandomForest': {'max_depth': [5, 15, 25],
                          'n_estimators': [5, 6, 20],
                          'min_samples_split': [3],
                          'min_samples_leaf': [3]
@@ -203,21 +203,21 @@ class WR:
         # Rbf c=0.01
         # Rbf c=0.001
         'SVC': {'kernel': ['rbf'],
-                'C': [0.01, 0.1, 1, 10],
+                'C': [0.01, 0.1, 1, 10, 1000],
                 },
         # max_depth=150, min_samples_split=0.05, max_features=2,auc=0.71
         'DecisionTree': {
-            'max_depth': [5, 10, 20, 80, 150],
+            'max_depth': [5, 10, 20],
             # Everything above 5 will basically already overfit the training data
-            'min_samples_split': [0.05, 0.2, 0.4, 0.6],
+            'min_samples_split': [0.05, 0.2, 0.4],
             'max_features': [2, 3, 4]
         },
         # max_depth=40, n_estimators=10, min_samples_split=0.2, min_samples_leaf=5, max_features=3, auc=0.73
-        'RandomForest': {'max_depth': [5, 20, 40, 150],
-                         'n_estimators': [5, 10, 30],
-                         'min_samples_split': [0.05, 0.1, 0.2, 0.5],
-                         'min_samples_leaf': [2, 3, 4, 5],
-                         'max_features': [2, 3, 4]
+        'RandomForest': {'max_depth': [5, 20],
+                         'n_estimators': [5, 10, 20],
+                         'min_samples_split': [0.05],
+                         'min_samples_leaf': [2, 3],
+                         'max_features': [2, 3]
                          },
     }
 

@@ -32,6 +32,8 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
 
     # do for all units
     ml_dataset['age'] = ml_dataset['age'].fillna(value=ml_dataset.mean()['age'])
+    # drop gsis_id since this will often be NaN for players that didn't make the roster
+    ml_dataset.drop(inplace=True, columns='gsis_id')
     ml_dataset.dropna(inplace=True)
 
     # feature selection for specific unit key
@@ -46,7 +48,7 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
     scatter_plot = sns.pairplot(vis, hue='Classification_All', diag_kind='scatter')
     scatter_plot.savefig('../ml_models/feature_selection/' + unit_key + '_featureplot.png')
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=4711)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42069)
 
     player_names_train = x_train['full_player_name']
     player_names_test = x_test['full_player_name']
@@ -59,16 +61,16 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
 
     # resample unbalanced classes for better training
     if unbalanced:
-        train_shape = y_train[y_train['Classification_All'] == 'Bust'].shape
+        train_shape = y_train['Classification_All'].value_counts()
         if train_shape[0] >= train_shape[1]:
             sample_amount = train_shape[0] - train_shape[1]
         else:
             sample_amount = train_shape[1] - train_shape[0]
         x_balance_samples, y_balance_samples = resample(x_train[y_train['Classification_All'] == 'Good'].to_numpy(),
-                 y_train[y_train['Classification_All'] == 'Good'].to_numpy(),
-                 replace=True,
-                 n_samples=sample_amount,
-                 random_state=4711)
+                                                        y_train[y_train['Classification_All'] == 'Good'].to_numpy(),
+                                                        replace=True,
+                                                        n_samples=sample_amount,
+                                                        random_state=4711)
         x_train = add_array_to_df_as_rows(x_balance_samples, x_train)
         y_train = add_array_to_df_as_rows(y_balance_samples, y_train)
 

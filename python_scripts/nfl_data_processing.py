@@ -77,10 +77,10 @@ def process_nfl_data():
     classifier.classify_by_single_classifier(qb_stats, classifier.standard_classifiers_qb(), Units.QB)
 
     # TODO save classified units into files
-    nfl.write_nfl_players_to_csv_no_stats(rb_stats, Units.RB.KEY, classifier.convert_to_string_list(classifier.standard_classifiers_rb()))
-    nfl.write_nfl_players_to_csv_no_stats(te_stats, Units.TE.KEY, classifier.convert_to_string_list(classifier.standard_classifiers_wr()))
-    nfl.write_nfl_players_to_csv_no_stats(wr_stats, Units.WR.KEY, classifier.convert_to_string_list(classifier.standard_classifiers_te()))
-    nfl.write_nfl_players_to_csv_no_stats(qb_stats, Units.QB.KEY, classifier.convert_to_string_list(classifier.standard_classifiers_qb()))
+    nfl.write_nfl_players_to_csv_no_stats(rb_stats, Units.RB.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_rb()))
+    nfl.write_nfl_players_to_csv_no_stats(te_stats, Units.TE.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_wr()))
+    nfl.write_nfl_players_to_csv_no_stats(wr_stats, Units.WR.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_te()))
+    nfl.write_nfl_players_to_csv_no_stats(qb_stats, Units.QB.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_qb()))
 
 # legacy classifying stuff
 # classifiers = classifier.standard_classifiers_wr()
