@@ -114,7 +114,10 @@ venv.bak/
 unprocessed_nfl_data/*
 unprocessed_college_data/*
 processed_college_data/*
+processed_college_data/*/*
+processed_college_data/*/*/*
 ml_model_visualisations/*
+ml_model_visualisations/*/*
 *.png
 
 # Spyder project settings
