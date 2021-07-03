@@ -1,4 +1,5 @@
 import pandas as pd
+import utils.unit_keys as Units
 
 base_columns = ['Player Code', 'Team Code', 'name', 'unit_key', 'season_x', 'draft_season', 'round', 'pick', 'age']
 
@@ -6,21 +7,45 @@ base_columns = ['Player Code', 'Team Code', 'name', 'unit_key', 'season_x', 'dra
 def align_positions(position):
     if position == 'T' or position == 'G' or position == 'C' \
             or position == 'OL' or position == 'OT' or position == 'OG':
-        return 'OL'
+        return Units.OL
     elif position == 'DB' or position == 'CB' or position == 'FS' or position == 'S' or position == 'SS':
-        return 'DB'
+        return Units.DB.KEY
     elif position == 'DL' or position == 'NT' or position == 'DE' or position == 'DT':
-        return 'DL'
+        return Units.DL.KEY
     elif position == 'LB' or position == 'OLB' or position == 'MLB' or position == 'ILB':
-        return 'LB'
+        return Units.LB.KEY
     elif position == 'RB' or position == 'FB' or position == 'TB':
-        return 'RB'
+        return Units.RB.KEY
     elif position == 'WR' or position == 'SE':
-        return 'WR'
+        return Units.WR.KEY
     elif position == 'K' or position == 'P':
-        return 'K'
+        return Units.K
     else:
         return position
+
+
+# support for units: WR, RB, QB, DL, LB, DB, TE
+def select_features_for_unit(ml_dataset, unit_key):
+    if unit_key == Units.WR.KEY:
+        return ml_dataset[
+            ['full_player_name','Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
+    if unit_key == Units.RB.KEY:
+        return ml_dataset[
+            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
+#             ['age', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
+#             'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD']]
+    if unit_key == Units.LB.KEY:
+        return []
+    if unit_key == Units.DL.KEY:
+        return []
+    if unit_key == Units.DB.KEY:
+        return []
+    if unit_key == Units.QB.KEY:
+        return ml_dataset[
+            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD', 'Pass Int']]
+    if unit_key == Units.TE.KEY:
+        return ml_dataset[
+            ['full_player_name', 'Rec', 'Rec Yards', 'Rec TD']]
 
 
 def normalize_positions_of_players(data, position_column_key):
@@ -37,28 +62,61 @@ def read_and_normalize_draft_file(file, position_column, after=2005, before=2020
     return draft_data
 
 
-def write_nfl_players_to_csv(data, filename):
-    data.to_csv('../processed_data/' + filename)
+def read_merged_file_for_unit(unit_key):
+    return read_csv('../processed_data/' + unit_key + '/' + unit_key + '_merged.csv')
 
 
-def write_nfl_players_to_csv_no_stats(data, filename):
-    csv_data = data[['full_player_name', 'position', 'gsis_id', 'Classification_All']]
-    csv_data.to_csv('../processed_data/' + filename)
+def read_csv(file):
+    return pd.read_csv(file)
 
 
-def classify_receiver(row):
-    if row['Total_Yards'] > 5000:
-        return 'Good'
-    return 'Bust'
+def write_nfl_players_to_csv(data, unit_key):
+    data.to_csv('../processed_data/' + unit_key + '/' + unit_key + '_merged.csv')
+
+
+def write_nfl_players_to_csv_no_stats(data, unit_key, classifier_columns=None):
+    standard_columns = ['full_player_name', 'unit_key', 'gsis_id', 'Classification_All']
+
+    # only all classification done - therefore no need for other classifier columns
+    if classifier_columns is not None:
+        standard_columns.extend(classifier_columns)
+
+    csv_data = data[standard_columns]
+    csv_data.to_csv('../processed_data/' + unit_key + '/' + unit_key + '_nfl_data.csv')
+
+
+def combine_statistics(receivering_stats, rushing_stats, passing_stats):
+    result = receivering_stats.merge(rushing_stats, left_on=['gsis_id'], right_on=['gsis_id'])
+    result = result.merge(passing_stats, left_on=['gsis_id'], right_on=['gsis_id'])
+    return result
+
+
+def read_passing_stats_for_players(players_df):
+    passing_stats = pd.read_csv("../unprocessed_nfl_data/statistics/season_passing_df.csv")
+    passing_stats = passing_stats[
+        ['Passer_ID', 'Attempts', 'Completions', 'Drives', 'Total_Yards', 'Interceptions', 'TDs']]
+    passing_stats['pass_season_helper'] = 1
+    passing_stats = passing_stats.groupby(['Passer_ID']).sum()
+    passing_stats = passing_stats.merge(players_df, left_on=['Passer_ID'], right_on=['gsis_id'])
+    return passing_stats
+
+
+def read_rushing_stats_for_players(players_df):
+    rushing_stats = pd.read_csv("../unprocessed_nfl_data/statistics/season_rushing_df.csv")
+    rushing_stats = rushing_stats[
+        ['Rusher_ID', 'Carries', 'Total_Yards', 'Fumbles', 'TDs']]
+    rushing_stats['rush_season_helper'] = 1
+    rushing_stats = rushing_stats.groupby(['Rusher_ID']).sum()
+    rushing_stats = rushing_stats.merge(players_df, left_on=['Rusher_ID'], right_on=['gsis_id'])
+    return rushing_stats
 
 
 def read_receiver_stats_for_players(players_df):
     receiving_stats = pd.read_csv("../unprocessed_nfl_data/statistics/season_receiving_df.csv")
-    # receiving_stats.drop(axis=1, labels=['Season', 'Player_Name', 'Targets_per_Drive', 'Rec_per_Drive', 'Yards_per_Drive', 'Yards_per_Rec', 'Yards_per_Target', 'YAC_per_Target', 'Caught_YAC_per_Target', 'Dropped_YAC_per_Target', 'YAC_per_Rec', 'Caught_YAC_per_Rec', 'Dropped_YAC_per_Rec', 'YAC_per_Drive'])
     receiving_stats = receiving_stats[
         ['Receiver_ID', 'Targets', 'Receptions', 'Drives', 'Total_Yards', 'Total_Raw_YAC', 'Total_Caught_YAC',
          'Fumbles', 'TDs', 'AC_TDs', 'Total_Caught_AirYards']]
-    receiving_stats['season_helper'] = 1
+    receiving_stats['rec_season_helper'] = 1
     receiving_stats = receiving_stats.groupby(['Receiver_ID']).sum()
     receiving_stats = receiving_stats.merge(players_df, left_on=['Receiver_ID'], right_on=['gsis_id'])
     return receiving_stats
@@ -114,7 +172,6 @@ def get_position_specific_data(dataset, unit_key):
 
 
 def use_rb_columns_only(dataset):
-    print("RB function called")
     rb_columns = base_columns.copy()
     rb_columns.extend(
         ['Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
@@ -124,7 +181,6 @@ def use_rb_columns_only(dataset):
 
 
 def use_wr_columns_only(dataset):
-    print("WR function called")
     wr_columns = base_columns.copy()
     wr_columns.extend(
         ['Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
@@ -134,39 +190,38 @@ def use_wr_columns_only(dataset):
 
 
 def use_dl_columns_only(dataset):
-    print("DL function called")
     dl_columns = base_columns.copy()
     dl_columns.extend(
-        ['Rush Att', 'Rush Yard', 'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
+        ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att', 'Rush Yard',
+         'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
          'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up'])
     dl_cols = dataset[dl_columns]
     return dl_cols
 
 
 def use_lb_columns_only(dataset):
-    print("LB function called")
     lb_columns = base_columns.copy()
     lb_columns.extend(
-        ['Rush Att', 'Rush Yard', 'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
+        ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att', 'Rush Yard',
+         'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
          'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up'])
     lb_cols = dataset[lb_columns]
     return lb_cols
 
 
 def use_qb_columns_only(dataset):
-    print("QB function called")
     qb_columns = base_columns.copy()
     qb_columns.extend(
-        ['Rush Att', 'Rush Yard', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD', 'Pass Int', 'Pass Conv'])
+        ['Rush Att', 'Rush Yard', 'Rush TD', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD', 'Pass Int', 'Pass Conv'])
     qb_cols = dataset[qb_columns]
     return qb_cols
 
 
 def use_db_columns_only(dataset):
-    print("DB function called")
     db_columns = base_columns.copy()
     db_columns.extend(
-        ['Rush Att', 'Rush Yard', 'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
+        ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att', 'Rush Yard',
+         'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
          'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up'])
     db_cols = dataset[db_columns]
     return db_cols
@@ -174,7 +229,6 @@ def use_db_columns_only(dataset):
 
 # No columns yet
 def use_ol_columns_only(dataset):
-    print("OL function called")
     ol_columns = base_columns.copy()
     # columns.extend([])
     ol_cols = dataset[ol_columns]
@@ -182,7 +236,6 @@ def use_ol_columns_only(dataset):
 
 
 def use_kicker_columns_only(dataset):
-    print("Kicker function called")
     kicker_columns = base_columns.copy()
     kicker_columns.extend(['Field Goal Att', 'Field Goal Made', 'Punt', 'Punt Yard'])
     kicker_cols = dataset[kicker_columns]
@@ -190,35 +243,22 @@ def use_kicker_columns_only(dataset):
 
 
 def drop_position_irrelevant_columns(dataset, position=None):
-    if position == 'RB':
+    if position == Units.RB.KEY:
         return use_rb_columns_only(dataset)
-    if position == 'WR':
+    if position == Units.WR.KEY:
         return use_wr_columns_only(dataset)
-    if position == 'DL':
+    if position == Units.DL.KEY:
         return use_dl_columns_only(dataset)
-    if position == 'LB':
+    if position == Units.LB.KEY:
         return use_lb_columns_only(dataset)
-    if position == 'QB':
+    if position == Units.QB.KEY:
         return use_qb_columns_only(dataset)
-    if position == 'DB':
+    if position == Units.DB.KEY:
         return use_db_columns_only(dataset)
-    if position == 'OL':
+    if position == Units.OL:
         return use_ol_columns_only(dataset)
-    if position == 'TE':
+    if position == Units.TE.KEY:
         return use_wr_columns_only(dataset)
-    if position == 'K':
+    if position == Units.K:
         return use_kicker_columns_only(dataset)
     return None
-    # switcher = {
-    #     'RB': use_rb_columns_only(dataset),
-    #     'WR': use_wr_columns_only(dataset),
-    #     'DL': use_dl_columns_only(dataset),
-    #     'LB': use_lb_columns_only(dataset),
-    #     'QB': use_qb_columns_only(dataset),
-    #     'DB': use_db_columns_only(dataset),
-    #     'OL': use_ol_columns_only(dataset),
-    #     'TE': use_wr_columns_only(dataset),
-    #     'K': use_kicker_columns_only(dataset),
-    #     None: dataset,
-    # }
-    # return switcher.get(position, lambda: "invalid position")

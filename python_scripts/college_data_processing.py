@@ -1,6 +1,9 @@
 import pandas as pd
 import football_utility_functions as nfl
-
+import utils.offense_utils as offense_utils
+import utils.defense_utils as defense_utils
+import utils.qb_utils as qb_utils
+import utils.unit_keys as Units
 
 def process_college_data():
     draft_data_sharpe = nfl.read_and_normalize_draft_file(
@@ -39,16 +42,18 @@ def process_college_data():
     taylor_merged_player_data = taylor_merged_player_data[
         ['Player Code', 'Team Code', 'name', 'unit_key', 'season_x', 'draft_season', 'round', 'pick', 'team', 'age',
          'to']]
+    taylor_merged_player_data = taylor_merged_player_data.dropna()
 
     max_season = taylor_merged_player_data['season_x'].max()
     min_season = taylor_merged_player_data['season_x'].min()
-    player_statistics = nfl.read_player_statistics_for_years(min_season, 2007)
+    player_statistics = nfl.read_player_statistics_for_years(min_season, max_season)
     player_statistics = player_statistics.drop(columns=['Game Code'])
 
     # %% get aggregated stats to find out stats for different player positions
 
+    # TODO Try aggregation functions method here as well
     aggregated_stats = player_statistics.groupby('Player Code', as_index=False).sum()
-    aggregated_stats = taylor_merged_player_data.merge(aggregated_stats, how='left', on='Player Code')
+    aggregated_stats = aggregated_stats.merge(taylor_merged_player_data, how='left', on='Player Code')
 
     # %%
 
@@ -72,9 +77,16 @@ def process_college_data():
     te_data = nfl.drop_position_irrelevant_columns(te_data, 'TE')
     ki_data = nfl.drop_position_irrelevant_columns(ki_data, 'K')
 
-    # TODO: Add team statistics for OLiner to have some stats
-
     # %% Create map with positional key and the data for it then
+    wr_data = offense_utils.merge_duplicate_offense_rows(wr_data)
+    te_data = offense_utils.merge_duplicate_offense_rows(te_data)
+    rb_data = offense_utils.merge_duplicate_offense_rows(rb_data)
+
+    qb_data = qb_utils.merge_duplicate_qb_rows(qb_data)
+
+    dl_data = defense_utils.merge_duplicate_defense_rows(dl_data)
+    db_data = defense_utils.merge_duplicate_defense_rows(db_data)
+    lb_data = defense_utils.merge_duplicate_defense_rows(lb_data)
 
     positional_data = {
         'DL': dl_data,
@@ -88,4 +100,12 @@ def process_college_data():
         'KI': ki_data,
     }
 
-    wr_data.to_csv(path_or_buf='../processed_data/wr_college_data.csv')
+    wr_data.to_csv(path_or_buf='../processed_data/' + Units.WR.KEY + '/' + Units.WR.KEY + '_college_data.csv')
+    rb_data.to_csv(path_or_buf='../processed_data/' + Units.RB.KEY + '/' + Units.RB.KEY + '_college_data.csv')
+    te_data.to_csv(path_or_buf='../processed_data/' + Units.TE.KEY + '/' + Units.TE.KEY + '_college_data.csv')
+
+    qb_data.to_csv(path_or_buf='../processed_data/' + Units.QB.KEY + '/' + Units.QB.KEY + '_college_data.csv')
+
+    lb_data.to_csv(path_or_buf='../processed_data/' + Units.LB.KEY + '/' + Units.LB.KEY + '_college_data.csv')
+    db_data.to_csv(path_or_buf='../processed_data/' + Units.DB.KEY + '/' + Units.DB.KEY + '_college_data.csv')
+    dl_data.to_csv(path_or_buf='../processed_data/' + Units.DL.KEY + '/' + Units.DL.KEY + '_college_data.csv')
