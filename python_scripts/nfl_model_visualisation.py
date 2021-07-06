@@ -17,33 +17,18 @@ def encode_array_numeric(array):
             result_array.append(1)
     return result_array
 
-
+# Visualize model performance according to different metrics:
+# - ROC: Receiver operating characteristic (TPR vs FPR): This curve is visualized for the best models in each category
+# - AUC: Area-under-curve is calculated to compare models with each other
+# - Accuracy
+# - Confusion matrices
 def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, unit_key):
     print("Starting model evaluation for " + unit_key)
     grid_searches = joblib.load('../ml_models/' + unit_key + '_trained_models.sav')
 
     unit_class = Units.parse_unit(unit_key)
     scoring = grid_searches['Baseline'].scoring
-
-    results_test_acc = []
-    results_test_std = []
-    results_train_acc = []
-    results_train_std = []
     labels = []
-
-    # for name in unit_class.names:
-    #    test_acc = np.mean(grid_searches[name].cv_results_['mean_test_score'])
-    #    results_test_acc.extend(grid_searches[name].cv_results_['mean_test_score'])
-    #    results_test_std.extend(grid_searches[name].cv_results_['std_test_score'])
-    #    results_train_acc.extend(grid_searches[name].cv_results_['mean_train_score'])
-    #    results_train_std.extend(grid_searches[name].cv_results_['std_train_score'])
-    #    for params in grid_searches[name].cv_results_['params']:
-    #        label = name
-    #        for param in params:
-    #            label = label + '_' + param + ':' + str(params[param])
-    #        labels.append(label)
-    #        # print("Accuracy for " + label + ":" + str(test_acc))
-
     train_accuracies = []
     test_accuracies = []
     test_rocauc_scores = []

@@ -25,6 +25,7 @@ def summarise_columns(col1, col2, col3=0.0):
     return col1 + col2 + col3
 
 
+# Classify NFL players based on read statistics for the players
 def process_nfl_data():
     combined_roster = nfl.read_nfl_rosters_in_year_range(2009, 2019)
 
@@ -81,15 +82,3 @@ def process_nfl_data():
     nfl.write_nfl_players_to_csv_no_stats(te_stats, Units.TE.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_wr()))
     nfl.write_nfl_players_to_csv_no_stats(wr_stats, Units.WR.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_te()))
     nfl.write_nfl_players_to_csv_no_stats(qb_stats, Units.QB.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_qb()))
-
-# legacy classifying stuff
-# classifiers = classifier.standard_classifiers_wr()
-#
-# classifier.classify_dataframe(receiving_stats, classifiers)
-# classifier.classify_by_single_classifier(receiving_stats, classifiers)
-#
-# classifier_columns = []
-# for cs in classifiers:
-#     classifier_columns.append(cs.__str__())
-#
-# nfl.write_nfl_players_to_csv_no_stats(receiving_stats, 'wr_nfl_data.csv', classifier_columns)

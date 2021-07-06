@@ -11,8 +11,6 @@ def process_college_data():
     draft_data_taylor = nfl.read_and_normalize_draft_file(
         "../unprocessed_college_data/draft_picks/seanjtaylor/drafts.csv", 'pos')
 
-    # %%
-
     combine_data_taylor = nfl.read_and_normalize_combine_data(
         '../unprocessed_college_data/draft_picks/seanjtaylor/combines.csv')
 
@@ -51,7 +49,7 @@ def process_college_data():
 
     # %% get aggregated stats to find out stats for different player positions
 
-    # TODO Try aggregation functions method here as well
+    # TODO Try aggregation functions method here as well, (e.g. to keep throwing accuracy)
     aggregated_stats = player_statistics.groupby('Player Code', as_index=False).sum()
     aggregated_stats = aggregated_stats.merge(taylor_merged_player_data, how='left', on='Player Code')
 
