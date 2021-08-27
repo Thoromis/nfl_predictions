@@ -119,6 +119,7 @@ processed_college_data/*/*/*
 ml_model_visualisations/*
 ml_model_visualisations/*/*
 *.png
+data_gitignore/*
 
 # Spyder project settings
 .spyderproject
