@@ -8,7 +8,7 @@ def align_positions(position):
     if position == 'T' or position == 'G' or position == 'C' \
             or position == 'OL' or position == 'OT' or position == 'OG':
         return Units.OL
-    elif position == 'DB' or position == 'CB' or position == 'FS' or position == 'S' or position == 'SS':
+    elif position == 'DB' or position == 'CB' or position == 'FS' or position == 'S' or position == 'SS' or position == 'SAF':
         return Units.DB.KEY
     elif position == 'DL' or position == 'NT' or position == 'DE' or position == 'DT':
         return Units.DL.KEY
@@ -28,12 +28,12 @@ def align_positions(position):
 def select_features_for_unit(ml_dataset, unit_key):
     if unit_key == Units.WR.KEY:
         return ml_dataset[
-            ['full_player_name','Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
+            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
     if unit_key == Units.RB.KEY:
         return ml_dataset[
             ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
-#             ['age', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
-#             'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD']]
+    #             ['age', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
+    #             'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD']]
     if unit_key == Units.LB.KEY:
         return []
     if unit_key == Units.DL.KEY:
@@ -42,7 +42,8 @@ def select_features_for_unit(ml_dataset, unit_key):
         return []
     if unit_key == Units.QB.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD', 'Pass Int']]
+            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD',
+             'Pass Int']]
     if unit_key == Units.TE.KEY:
         return ml_dataset[
             ['full_player_name', 'Rec', 'Rec Yards', 'Rec TD']]
