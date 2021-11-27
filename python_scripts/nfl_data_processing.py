@@ -26,7 +26,7 @@ def summarise_columns(col1, col2, col3=0.0):
 
 
 # Classify NFL players based on read statistics for the players
-def process_nfl_data():
+def process_nfl_offensive_data():
     combined_roster = nfl.read_nfl_rosters_in_year_range(2009, 2019)
 
     # read offensive statistics
@@ -34,19 +34,19 @@ def process_nfl_data():
     rushing_stats = nfl.read_rushing_stats_for_players(combined_roster)
     passing_stats = nfl.read_passing_stats_for_players(combined_roster)
 
-    combined_stats = receiving_stats.merge(passing_stats, how='outer', left_on=['gsis_id'],
+    combined_offensive_stats = receiving_stats.merge(passing_stats, how='outer', left_on=['gsis_id'],
                                            right_on=['gsis_id']).merge(rushing_stats, how='outer',
                                                                        left_on=['gsis_id'],
                                                                        right_on=['gsis_id'])
-    combined_stats['position_key'] = combined_stats.apply(
+    combined_offensive_stats['position_key'] = combined_offensive_stats.apply(
         lambda x: unify_position(x['position_x'], x['position_y'], x['position']), axis=1)
-    combined_stats['Total_Yards'] = combined_stats.apply(
+    combined_offensive_stats['Total_Yards'] = combined_offensive_stats.apply(
         lambda x: summarise_columns(x['Total_Yards_x'], x['Total_Yards_y'], x['Total_Yards']), axis=1)
-    combined_stats['Fumbles'] = combined_stats.apply(
+    combined_offensive_stats['Fumbles'] = combined_offensive_stats.apply(
         lambda x: summarise_columns(x['Fumbles_y'], x['Fumbles_x']), axis=1)
-    combined_stats['TDs'] = combined_stats.apply(
+    combined_offensive_stats['TDs'] = combined_offensive_stats.apply(
         lambda x: summarise_columns(x['TDs_x'], x['TDs_y'], x['TDs']), axis=1)
-    combined_stats['season_helper'] = combined_stats.apply(
+    combined_offensive_stats['season_helper'] = combined_offensive_stats.apply(
         lambda x: max(x['rec_season_helper'], x['rush_season_helper'], x['pass_season_helper']), axis=1)
 
     # Total_Yards_x + Total_Yards_y + Total_Yards (rushing)
@@ -56,13 +56,13 @@ def process_nfl_data():
 
     # combined stats holds for all offensive groups now statistics with proper unit key
     # TODO unify unit key (should likely still be FB, RB, etc.)
-    dataset = nfl.normalize_positions_of_players(combined_stats, 'position_key') # after this, 'unit_key' shall be used
+    dataset_offensive_stats = nfl.normalize_positions_of_players(combined_offensive_stats, 'position_key') # after this, 'unit_key' shall be used
 
     # TODO split up units into single dataframes
-    wr_stats = nfl.get_position_specific_data(dataset, Units.WR.KEY)
-    rb_stats = nfl.get_position_specific_data(dataset, Units.RB.KEY)
-    te_stats = nfl.get_position_specific_data(dataset, Units.TE.KEY)
-    qb_stats = nfl.get_position_specific_data(dataset, Units.QB.KEY)
+    wr_stats = nfl.get_position_specific_data(dataset_offensive_stats, Units.WR.KEY)
+    rb_stats = nfl.get_position_specific_data(dataset_offensive_stats, Units.RB.KEY)
+    te_stats = nfl.get_position_specific_data(dataset_offensive_stats, Units.TE.KEY)
+    qb_stats = nfl.get_position_specific_data(dataset_offensive_stats, Units.QB.KEY)
 
     # TODO classify single unit dataframes
     classifier.classify_dataframe(rb_stats, classifier.standard_classifiers_rb(), Units.RB)
@@ -82,3 +82,20 @@ def process_nfl_data():
     nfl.write_nfl_players_to_csv_no_stats(te_stats, Units.TE.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_wr()))
     nfl.write_nfl_players_to_csv_no_stats(wr_stats, Units.WR.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_te()))
     nfl.write_nfl_players_to_csv_no_stats(qb_stats, Units.QB.KEY, None) # classifier.convert_to_string_list(classifier.standard_classifiers_qb()))
+
+
+def process_nfl_defensive_data():
+    defensive_stats = nfl.read_csv('../unprocessed_nfl_data/statistics/defensive_statistics.csv')
+
+    lb_stats = nfl.get_position_specific_data(defensive_stats, Units.LB.KEY)
+    db_stats = nfl.get_position_specific_data(defensive_stats, Units.DB.KEY)
+    dl_stats = nfl.get_position_specific_data(defensive_stats, Units.DL.KEY)
+
+    classifier.classify_dataframe(lb_stats, classifier.standard_classifiers_lb(), Units.LB)
+    classifier.classify_dataframe(lb_stats, classifier.standard_classifiers_db(), Units.LB)
+    classifier.classify_dataframe(lb_stats, classifier.standard_classifiers_dl(), Units.LB)
+
+
+
+
+

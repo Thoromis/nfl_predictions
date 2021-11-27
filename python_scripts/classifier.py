@@ -81,6 +81,51 @@ def classify_by_total_yards(row, max_threshold=Units.WR.MAX_YARD_THRESHOLD):
     return 1 / max_threshold * value
 
 
+def classify_by_caught_interceptions(row, max_treshold=Units.DB.MAX_CAUGHT_INTS_THRESHOLD):
+    value = min(row['interceptions'], max_treshold)
+    return 1 / max_treshold * value
+
+
+def classify_by_def_pass_incompletions(row, max_treshold=Units.DB.MAX_INCOMPLETE_PASSES_THRESHOLD):
+    value = min(row['incomplete_passes_against'], max_treshold)
+    return 1 / max_treshold * value
+
+
+def classify_by_sacks(row, max_threshold=Units.DL.MAX_SACK_THRESHOLD):
+    value = min(row['sacks'], max_threshold)
+    return 1 / max_threshold * value
+
+
+def classify_by_qb_hits(row, max_threshold=Units.DL.MAX_QB_HITS_THRESHOLD):
+    value = min(row['qb_hits'], max_threshold)
+    return 1 / max_threshold * value
+
+
+def classify_by_forced_fumbles(row, max_threshold=Units.DL.MAX_FORCED_FUMBLES_THRESHOLD):
+    value = min(row['forced_fumbles'], max_threshold)
+    return 1 / max_threshold * value
+
+
+def classify_by_total_tackles(row, max_threshold=Units.LB.MAX_TOT_TACKLES_THRESHOLD):
+    value = min(row['total_tackles'], max_threshold)
+    return 1 / max_threshold * value
+
+
+def classify_by_assisted_tackles(row, max_threshold=Units.LB.MAX_ASS_TACKLES_THRESHOLD):
+    value = min(row['tackles_assist'], max_threshold)
+    return 1 / max_threshold * value
+
+
+def classify_by_solo_tackles(row, max_threshold=Units.LB.MAX_SOLO_TACKLE_THRESHOLD):
+    value = min(row['solo_tackles'], max_threshold)
+    return 1 / max_threshold * value
+
+
+def classify_by_tfls(row, max_threshold=Units.DL.MAX_TFL_THRESHOLD):
+    value = min(row['tackles_for_loss'], max_threshold)
+    return 1 / max_threshold * value
+
+
 # region Standard classifier sets
 def standard_classifiers_wr():
     return [Classifier.BY_TOTAL_YARDS, Classifier.BY_YEARS_IN_NFL, Classifier.BY_TDs, Classifier.BY_RECEPTIONS]
@@ -99,6 +144,22 @@ def standard_classifiers_qb():
             Classifier.BY_COMPLETIONS]
 
 
+def standard_classifiers_lb():
+    return [Classifier.BY_TOTAL_TACKLES, Classifier.BY_ASSISTED_TACKLES, Classifier.BY_SOLO_TACKLES, Classifier.BY_TFL,
+            Classifier.BY_SACKS, Classifier.BY_QB_HITS, Classifier.BY_FORCED_FUMBLES, Classifier.BY_PASS_DEF,
+            Classifier.BY_INTERCEPTIONS_CAUGHT]
+
+
+def standard_classifiers_dl():
+    return [Classifier.BY_TOTAL_TACKLES, Classifier.BY_ASSISTED_TACKLES, Classifier.BY_SOLO_TACKLES, Classifier.BY_TFL,
+            Classifier.BY_SACKS, Classifier.BY_QB_HITS, Classifier.BY_FORCED_FUMBLES]
+
+
+def standard_classifiers_db():
+    return [Classifier.BY_TOTAL_TACKLES, Classifier.BY_ASSISTED_TACKLES, Classifier.BY_SOLO_TACKLES, Classifier.BY_TFL,
+            Classifier.BY_SACKS, Classifier.BY_FORCED_FUMBLES, Classifier.BY_PASS_DEF, Classifier.BY_INTERCEPTIONS_CAUGHT]
+
+
 def convert_to_string_list(classifiers):
     classifier_columns = []
     for cs in classifiers:
@@ -109,12 +170,27 @@ def convert_to_string_list(classifiers):
 
 
 class Classifier(Enum):
+    # General classifiers
     BY_YEARS_IN_NFL = 1
+
+    # Offensive Classifiers
     BY_TOTAL_YARDS = 2
     BY_TDs = 3
     BY_RECEPTIONS = 4
     BY_INTERCEPTIONS = 5
     BY_COMPLETIONS = 6
+
+    # Defensive Classifiers
+    BY_TOTAL_TACKLES = 7
+    BY_ASSISTED_TACKLES = 8
+    BY_SOLO_TACKLES = 9
+    BY_TFL = 10
+    BY_SACKS = 11
+    BY_QB_HITS = 12
+    BY_FORCED_FUMBLES = 13
+    BY_RECOVERED_FUMBLES = 14
+    BY_PASS_DEF = 15
+    BY_INTERCEPTIONS_CAUGHT = 16
 
     def __eq__(self, other):
         if self.value == other:
