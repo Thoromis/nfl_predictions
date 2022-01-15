@@ -19,9 +19,7 @@ def classify_row(row, classifiers, unit):
     if len(classifiers) == 0:
         return 'Good'
 
-    classification_threshold = 0.5
-    if unit == Units.QB:
-        classification_threshold = 0.4
+    classification_threshold = unit.CLASSIFICATION_THRESHOLD
 
     result = 0
     for classifier in classifiers:
@@ -37,6 +35,24 @@ def classify_row(row, classifiers, unit):
             result += classify_by_interceptions(row, unit.MAX_INT_THRESHOLD)
         elif classifier == Classifier.BY_COMPLETIONS:
             result += classify_by_completions(row, unit.MAX_COMP_THRESHOLD)
+        elif classifier == Classifier.BY_SOLO_TACKLES:
+            result += classify_by_solo_tackles(row, unit.MAX_SOLO_TACKLE_THRESHOLD)
+        elif classifier == Classifier.BY_ASSISTED_TACKLES:
+            result += classify_by_assisted_tackles(row, unit.MAX_ASS_TACKLES_THRESHOLD)
+        elif classifier == Classifier.BY_TOTAL_TACKLES:
+            result += classify_by_total_tackles(row, unit.MAX_TOT_TACKLES_THRESHOLD)
+        elif classifier == Classifier.BY_TFL:
+            result += classify_by_tfls(row, unit.MAX_TFL_THRESHOLD)
+        elif classifier == Classifier.BY_SACKS:
+            result += classify_by_sacks(row, unit.MAX_SACK_THRESHOLD)
+        elif classifier == Classifier.BY_FORCED_FUMBLES:
+            result += classify_by_forced_fumbles(row, unit.MAX_FORCED_FUMBLES_THRESHOLD)
+        elif classifier == Classifier.BY_QB_HITS:
+            result += classify_by_qb_hits(row, unit.MAX_QB_HITS_THRESHOLD)
+        elif classifier == Classifier.BY_PASS_DEF:
+            result += classify_by_def_pass_incompletions(row, unit.MAX_INCOMPLETE_PASSES_THRESHOLD)
+        elif classifier == Classifier.BY_INTERCEPTIONS_CAUGHT:
+            result += classify_by_caught_interceptions(row, unit.MAX_CAUGHT_INTS_THRESHOLD)
 
     if result / len(classifiers) >= classification_threshold:
         return 'Good'
@@ -147,17 +163,18 @@ def standard_classifiers_qb():
 def standard_classifiers_lb():
     return [Classifier.BY_TOTAL_TACKLES, Classifier.BY_ASSISTED_TACKLES, Classifier.BY_SOLO_TACKLES, Classifier.BY_TFL,
             Classifier.BY_SACKS, Classifier.BY_QB_HITS, Classifier.BY_FORCED_FUMBLES, Classifier.BY_PASS_DEF,
-            Classifier.BY_INTERCEPTIONS_CAUGHT]
+            Classifier.BY_INTERCEPTIONS_CAUGHT, Classifier.BY_YEARS_IN_NFL]
 
 
 def standard_classifiers_dl():
     return [Classifier.BY_TOTAL_TACKLES, Classifier.BY_ASSISTED_TACKLES, Classifier.BY_SOLO_TACKLES, Classifier.BY_TFL,
-            Classifier.BY_SACKS, Classifier.BY_QB_HITS, Classifier.BY_FORCED_FUMBLES]
+            Classifier.BY_SACKS, Classifier.BY_QB_HITS, Classifier.BY_FORCED_FUMBLES, Classifier.BY_YEARS_IN_NFL]
 
 
 def standard_classifiers_db():
     return [Classifier.BY_TOTAL_TACKLES, Classifier.BY_ASSISTED_TACKLES, Classifier.BY_SOLO_TACKLES, Classifier.BY_TFL,
-            Classifier.BY_SACKS, Classifier.BY_FORCED_FUMBLES, Classifier.BY_PASS_DEF, Classifier.BY_INTERCEPTIONS_CAUGHT]
+            Classifier.BY_SACKS, Classifier.BY_FORCED_FUMBLES, Classifier.BY_PASS_DEF,
+            Classifier.BY_INTERCEPTIONS_CAUGHT, Classifier.BY_YEARS_IN_NFL]
 
 
 def convert_to_string_list(classifiers):
@@ -165,6 +182,7 @@ def convert_to_string_list(classifiers):
     for cs in classifiers:
         classifier_columns.append(cs.__str__())
     return classifier_columns
+
 
 # endregion
 

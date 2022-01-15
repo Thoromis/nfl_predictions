@@ -48,7 +48,7 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
     scatter_plot = sns.pairplot(vis, hue='Classification_All', diag_kind='scatter')
     scatter_plot.savefig('../ml_models/feature_selection/' + unit_key + '_featureplot.png')
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42069)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25 , random_state=42069)
 
     player_names_train = x_train['full_player_name']
     player_names_test = x_test['full_player_name']

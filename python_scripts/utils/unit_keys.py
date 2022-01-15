@@ -6,39 +6,53 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 
+# Average time in NFL for all positions: 3.3 years (no data found for defense)
+#https://www.fftoday.com/stats/playerstats.php?Season=2021&GameWeek=&PosID=70&LeagueID=&order_by=Assist&sort_order=DESC
 class DB:
     KEY = 'DB'
     MAX_CAUGHT_INTS_THRESHOLD = 3.3 * 2 * 2
-    MAX_INCOMPLETE_PASSES_THRESHOLD = 0
-    MAX_TOT_TACKLES_THRESHOLD = 0
-    MAX_ASS_TACKLES_THRESHOLD = 0
-    MAX_SOLO_TACKLE_THRESHOLD = 0
-    MAX_TFL_THRESHOLD = 0
-    MAX_SACK_THRESHOLD = 3.3 * 2 * 2
-    MAX_FORCED_FUMBLES_THRESHOLD = 0
+    MAX_INCOMPLETE_PASSES_THRESHOLD = 3.3 * 2 * 7.5
+    MAX_TOT_TACKLES_THRESHOLD = 3.3 * 2 * 30
+    MAX_ASS_TACKLES_THRESHOLD = 3.3 * 2 * 20
+    MAX_SOLO_TACKLE_THRESHOLD = 3.3 * 2 * 10
+    MAX_TFL_THRESHOLD = 3.3 * 2 * 1
+    MAX_SACK_THRESHOLD = 3.3 * 2 * 1
+    MAX_FORCED_FUMBLES_THRESHOLD = 3.3 * 2 * 1
+    MAX_SEASON_THRESHOLD = 5.6  # (taken from WR)
+    CLASSIFICATION_THRESHOLD = 0.5
 
-class LB:
-    KEY = 'LB'
-    MAX_SACK_THRESHOLD = 3.3 * 2 * 2
-    MAX_TOT_TACKLES_THRESHOLD = 3.3 * 60 * 2
-    MAX_ASS_TACKLES_THRESHOLD = 0
-    MAX_SOLO_TACKLE_THRESHOLD = 0
-    MAX_TFL_THRESHOLD = 0
-    MAX_QB_HITS_THRESHOLD = 0
-    MAX_FORCED_FUMBLES_THRESHOLD = 0
-    MAX_INCOMPLETE_PASSES_THRESHOLD = 0
-    MAX_CAUGHT_INTS_THRESHOLD = 3.3 * 0.5 * 2
 
 # Average time in NFL for all positions: 3.3 years (no data found for defense)
+#https://www.fftoday.com/stats/playerstats.php?Season=2021&GameWeek=&PosID=60&LeagueID=
+class LB:
+    KEY = 'LB'
+    MAX_SACK_THRESHOLD = 3.3 * 3 * 2
+    MAX_TOT_TACKLES_THRESHOLD = 3.3 * 75 * 2
+    MAX_ASS_TACKLES_THRESHOLD = 3.3 * 27.5 * 2
+    MAX_SOLO_TACKLE_THRESHOLD = 3.3 * 40 * 2
+    MAX_TFL_THRESHOLD = 3.3 * 5 * 2
+    MAX_QB_HITS_THRESHOLD = 3.3 * 6 * 2
+    MAX_FORCED_FUMBLES_THRESHOLD = 3.3 * 1.5 * 2
+    MAX_INCOMPLETE_PASSES_THRESHOLD = 3.3 * 5 * 2
+    MAX_CAUGHT_INTS_THRESHOLD = 3.3 * 0.5 * 2
+    MAX_SEASON_THRESHOLD = 5.2  # (taken from RB)
+    CLASSIFICATION_THRESHOLD = 0.45
+
+
+# Average time in NFL for all positions: 3.3 years (no data found for defense)
+# https://www.pro-football-reference.com/years/2020/defense.htm
+# NOTE: Classification will e.g. label N.Bosa as Bust because it takes total amounts
 class DL:
     KEY = 'DL'
-    MAX_SACK_THRESHOLD = 3.3 * 7 * 2
-    MAX_QB_HITS_THRESHOLD = 0
-    MAX_TFL_THRESHOLD = 0
-    MAX_TOT_TACKLES_THRESHOLD = 3.3 * 60 * 2
-    MAX_ASS_TACKLES_THRESHOLD = 0
-    MAX_SOLO_TACKLE_THRESHOLD = 0
-    MAX_FORCED_FUMBLES_THRESHOLD = 0
+    MAX_SACK_THRESHOLD = 3.3 * 5 * 2
+    MAX_QB_HITS_THRESHOLD = 3.3 * 10 * 2
+    MAX_TFL_THRESHOLD = 3.3 * 5 * 2
+    MAX_TOT_TACKLES_THRESHOLD = 3.3 * 15 * 2
+    MAX_ASS_TACKLES_THRESHOLD = 3.3 * 5 * 2
+    MAX_SOLO_TACKLE_THRESHOLD = 3.3 * 10 * 2
+    MAX_FORCED_FUMBLES_THRESHOLD = 3.3 * 1 * 2
+    MAX_SEASON_THRESHOLD = 5.2  # (taken from RB)
+    CLASSIFICATION_THRESHOLD = 0.5
 
 
 # unused
@@ -56,6 +70,7 @@ class TE:
     MAX_TD_THRESHOLD = 2.8 * 3 * 2
     MAX_REC_THRESHOLD = 2.8 * 50 * 2
     MAX_SEASON_THRESHOLD = 5.6
+    CLASSIFICATION_THRESHOLD = 0.5
 
     names = [
         "Baseline",
@@ -107,6 +122,7 @@ class QB:
     # https://www.pro-football-reference.com/years/NFL/passing.htm
     MAX_COMP_THRESHOLD = 4.4 * 300 * 2
     MAX_SEASON_THRESHOLD = 8.8
+    CLASSIFICATION_THRESHOLD = 0.4
 
     names = [
         "Baseline",
@@ -155,6 +171,7 @@ class RB:
     MAX_TD_THRESHOLD = 2.6 * 5 * 2
     MAX_REC_THRESHOLD = 2.6 * 20 * 2
     MAX_SEASON_THRESHOLD = 5.2
+    CLASSIFICATION_THRESHOLD = 0.5
 
     # ml params
     names = [
@@ -203,6 +220,7 @@ class WR:
     MAX_TD_THRESHOLD = 2.8 * 5 * 2
     MAX_REC_THRESHOLD = 2.8 * 80 * 2
     MAX_SEASON_THRESHOLD = 5.6
+    CLASSIFICATION_THRESHOLD = 0.5
 
     names = [
         "Baseline",

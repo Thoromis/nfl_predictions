@@ -78,7 +78,7 @@ def write_nfl_players_to_csv(data, unit_key):
 def write_nfl_players_to_csv_no_stats(data, unit_key, classifier_columns=None):
     standard_columns = ['full_player_name', 'unit_key', 'gsis_id', 'Classification_All']
 
-    # only all classification done - therefore no need for other classifier columns
+    # only 'all' classification done - therefore no need for other classifier columns
     if classifier_columns is not None:
         standard_columns.extend(classifier_columns)
 

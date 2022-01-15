@@ -34,6 +34,8 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     test_rocauc_scores = []
     train_rocauc_scores = []
 
+    y_test_predictions = []
+
     for name in unit_class.names:
         gs_test = grid_searches[name]
 
@@ -77,6 +79,26 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
         test_accuracies.append(test_acc)
         train_accuracies.append(train_acc)
         labels.append(label)
+
+        y_test_predictions.append(y_test_pred_num)
+
+    # Collected ROC curve for models
+    plt.figure()
+
+    for i in range(0, len(y_test_predictions)):
+        name = unit_class.names[i]
+        gs = grid_searches[name]
+
+        y_score = y_test_predictions[i]
+        fpr, tpr, _ = metrics.roc_curve(y_test, y_score, pos_label='Good')
+        plt.plot(fpr, tpr, label=name + " (AUC= {0:0.2f}".format(test_rocauc_scores[i]) + ")")
+
+    plt.legend(loc=4)
+    plt.title(label='ROC AUC Curve')
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/' + 'combined_roc_curve.png')
+    plt.show()
 
     # RocAuc plots
     plt.barh(labels, test_rocauc_scores)

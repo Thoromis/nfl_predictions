@@ -86,14 +86,26 @@ def process_nfl_offensive_data():
 
 def process_nfl_defensive_data():
     defensive_stats = nfl.read_csv('../unprocessed_nfl_data/statistics/defensive_statistics.csv')
+    defensive_stats['gsis_id'] = defensive_stats['player_id']
+    defensive_stats['full_player_name'] = defensive_stats['player_name']
+    defensive_stats.drop(columns=['player_id', 'player_name'])
 
     lb_stats = nfl.get_position_specific_data(defensive_stats, Units.LB.KEY)
+    classifier.classify_by_single_classifier(lb_stats, classifier.standard_classifiers_lb(), Units.LB)
+
     db_stats = nfl.get_position_specific_data(defensive_stats, Units.DB.KEY)
+    classifier.classify_by_single_classifier(db_stats, classifier.standard_classifiers_db(), Units.DB)
+
     dl_stats = nfl.get_position_specific_data(defensive_stats, Units.DL.KEY)
+    classifier.classify_by_single_classifier(dl_stats, classifier.standard_classifiers_dl(), Units.DL)
 
     classifier.classify_dataframe(lb_stats, classifier.standard_classifiers_lb(), Units.LB)
-    classifier.classify_dataframe(lb_stats, classifier.standard_classifiers_db(), Units.LB)
-    classifier.classify_dataframe(lb_stats, classifier.standard_classifiers_dl(), Units.LB)
+    classifier.classify_dataframe(db_stats, classifier.standard_classifiers_db(), Units.DB)
+    classifier.classify_dataframe(dl_stats, classifier.standard_classifiers_dl(), Units.DL)
+
+    nfl.write_nfl_players_to_csv_no_stats(lb_stats, Units.LB.KEY, None)
+    nfl.write_nfl_players_to_csv_no_stats(db_stats, Units.DB.KEY, None)
+    nfl.write_nfl_players_to_csv_no_stats(dl_stats, Units.DL.KEY, None)
 
 
 
