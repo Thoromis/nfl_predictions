@@ -5,56 +5,8 @@ import utils.defense_utils as defense_utils
 import utils.qb_utils as qb_utils
 import utils.unit_keys as Units
 
-def process_college_data():
-    draft_data_sharpe = nfl.read_and_normalize_draft_file(
-        "../unprocessed_college_data/draft_picks/leesharpe/draft_picks.csv", 'position')
-    draft_data_taylor = nfl.read_and_normalize_draft_file(
-        "../unprocessed_college_data/draft_picks/seanjtaylor/drafts.csv", 'pos')
 
-    combine_data_taylor = nfl.read_and_normalize_combine_data(
-        '../unprocessed_college_data/draft_picks/seanjtaylor/combines.csv')
-
-    # %% Read in player data in a loop
-
-    player_data = pd.DataFrame()
-
-    for i in range(2005, 2014):
-        data_for_year = nfl.read_and_normalize_player_data_for_year(i, 'Position')
-        player_data = player_data.append(data_for_year)
-
-    # %% Merge player data with draft picks and rounds
-
-    sharpe_merged_player_data = player_data.merge(draft_data_sharpe, left_on=['name', 'draft_season', 'unit_key'],
-                                                  right_on=['full_name', 'season', 'unit_key'])
-
-    # left join so we keep also players that weren't drafted
-    taylor_merged_player_data = player_data.merge(draft_data_taylor, how='left',
-                                                  left_on=['name', 'draft_season', 'unit_key'],
-                                                  right_on=['player', 'season', 'unit_key'])
-    taylor_merged_player_data = taylor_merged_player_data.merge(combine_data_taylor, how='left',
-                                                                left_on=['draft_season', 'player', 'unit_key'],
-                                                                right_on=['season', 'player', 'unit_key'])
-
-    # %% Pick columns we need from the merged sets (Using TAYLOR's data)
-
-    taylor_merged_player_data = taylor_merged_player_data[
-        ['Player Code', 'Team Code', 'name', 'unit_key', 'season_x', 'draft_season', 'round', 'pick', 'team', 'age',
-         'to']]
-    taylor_merged_player_data = taylor_merged_player_data.dropna()
-
-    max_season = taylor_merged_player_data['season_x'].max()
-    min_season = taylor_merged_player_data['season_x'].min()
-    player_statistics = nfl.read_player_statistics_for_years(min_season, max_season)
-    player_statistics = player_statistics.drop(columns=['Game Code'])
-
-    # %% get aggregated stats to find out stats for different player positions
-
-    # TODO Try aggregation functions method here as well, (e.g. to keep throwing accuracy)
-    aggregated_stats = player_statistics.groupby('Player Code', as_index=False).sum()
-    aggregated_stats = aggregated_stats.merge(taylor_merged_player_data, how='left', on='Player Code')
-
-    # %%
-
+def save_position_specific_statistics(aggregated_stats):
     dl_data = nfl.get_position_specific_data(aggregated_stats, 'DL')
     wr_data = nfl.get_position_specific_data(aggregated_stats, 'WR')
     rb_data = nfl.get_position_specific_data(aggregated_stats, 'RB')
@@ -76,6 +28,9 @@ def process_college_data():
     ki_data = nfl.drop_position_irrelevant_columns(ki_data, 'K')
 
     # %% Create map with positional key and the data for it then
+    # The mapping of aggregation functions would need to be further up (instead of aggregated_stats aggr.) to be of use
+    # If needed: remove aggregated_stats aggregation, and only split into positional groups - then use this mapping
+    # If thats the case then also add mean instead of sum everywhere
     wr_data = offense_utils.merge_duplicate_offense_rows(wr_data)
     te_data = offense_utils.merge_duplicate_offense_rows(te_data)
     rb_data = offense_utils.merge_duplicate_offense_rows(rb_data)
@@ -86,18 +41,6 @@ def process_college_data():
     db_data = defense_utils.merge_duplicate_defense_rows(db_data)
     lb_data = defense_utils.merge_duplicate_defense_rows(lb_data)
 
-    positional_data = {
-        'DL': dl_data,
-        'WR': wr_data,
-        'RB': rb_data,
-        'LB': lb_data,
-        'QB': qb_data,
-        'DB': db_data,
-        'OL': ol_data,
-        'TE': te_data,
-        'KI': ki_data,
-    }
-
     wr_data.to_csv(path_or_buf='../processed_data/' + Units.WR.KEY + '/' + Units.WR.KEY + '_college_data.csv')
     rb_data.to_csv(path_or_buf='../processed_data/' + Units.RB.KEY + '/' + Units.RB.KEY + '_college_data.csv')
     te_data.to_csv(path_or_buf='../processed_data/' + Units.TE.KEY + '/' + Units.TE.KEY + '_college_data.csv')
@@ -107,3 +50,62 @@ def process_college_data():
     lb_data.to_csv(path_or_buf='../processed_data/' + Units.LB.KEY + '/' + Units.LB.KEY + '_college_data.csv')
     db_data.to_csv(path_or_buf='../processed_data/' + Units.DB.KEY + '/' + Units.DB.KEY + '_college_data.csv')
     dl_data.to_csv(path_or_buf='../processed_data/' + Units.DL.KEY + '/' + Units.DL.KEY + '_college_data.csv')
+
+
+def process_college_data():
+    # Read in player names
+    player_data = pd.DataFrame()
+
+    for i in range(2005, 2014):
+        data_for_year = nfl.read_and_normalize_player_data_for_year(i, 'Position')
+        player_data = player_data.append(data_for_year)
+
+    player_data = player_data.drop_duplicates(subset=['Player Code'])
+
+    # Read in Statistics
+    player_statistics = nfl.read_player_statistics_for_years(2005, 2014)
+    player_statistics = player_statistics.drop(columns=['Game Code'])
+
+    # TODO Try aggregation functions method here as well, (e.g. to keep throwing accuracy)
+    # Combine statistics and names
+    aggregated_stats = player_statistics.groupby('Player Code', as_index=False).sum()
+    aggregated_stats = aggregated_stats.merge(player_data, how='left', on='Player Code')
+
+    save_position_specific_statistics(aggregated_stats)
+
+
+def legacy_process_college_data():
+    draft_data_taylor = nfl.read_and_normalize_draft_file(
+        "../unprocessed_college_data/draft_picks/seanjtaylor/drafts.csv", 'pos')
+
+    player_data = pd.DataFrame()
+
+    for i in range(2005, 2014):
+        data_for_year = nfl.read_and_normalize_player_data_for_year(i, 'Position')
+        player_data = player_data.append(data_for_year)
+
+    # left join so we keep also players that weren't drafted
+    taylor_merged_player_data = player_data.merge(draft_data_taylor, how='left',
+                                                  left_on=['name', 'draft_season', 'unit_key'],
+                                                  right_on=['player', 'season', 'unit_key'])
+
+    # %% Pick columns we need from the merged sets (Using TAYLOR's data)
+
+    taylor_merged_player_data = taylor_merged_player_data[
+        ['Player Code', 'Team Code', 'name', 'unit_key', 'season_x', 'draft_season', 'round', 'pick', 'team', 'age',
+         'to']]
+    taylor_merged_player_data = taylor_merged_player_data.dropna()
+
+    max_season = taylor_merged_player_data['season_x'].max()
+    min_season = taylor_merged_player_data['season_x'].min()
+    player_statistics = nfl.read_player_statistics_for_years(min_season, max_season + 1)
+    player_statistics = player_statistics.drop(columns=['Game Code'])
+
+    # %% get aggregated stats to find out stats for different player positions
+
+    # TODO Try aggregation functions method here as well, (e.g. to keep throwing accuracy)
+    aggregated_stats = player_statistics.groupby('Player Code', as_index=False).sum()
+    aggregated_stats = aggregated_stats.merge(taylor_merged_player_data, how='left', on='Player Code')
+
+    # %%
+    save_position_specific_statistics(aggregated_stats)

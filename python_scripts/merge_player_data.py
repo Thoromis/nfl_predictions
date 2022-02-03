@@ -28,3 +28,6 @@ def merge_player_data_from_files():
     merge_and_save_data(Units.RB.KEY)
     merge_and_save_data(Units.TE.KEY)
     merge_and_save_data(Units.QB.KEY)
+    merge_and_save_data(Units.LB.KEY)
+    merge_and_save_data(Units.DB.KEY)
+    merge_and_save_data(Units.DL.KEY)
