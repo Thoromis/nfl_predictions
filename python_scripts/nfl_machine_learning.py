@@ -31,7 +31,7 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
     unit_class = Units.parse_unit(unit_key)
 
     # do for all units
-    ml_dataset['age'] = ml_dataset['age'].fillna(value=ml_dataset.mean()['age'])
+    # ml_dataset['age'] = ml_dataset['age'].fillna(value=ml_dataset.mean()['age'])
     # drop gsis_id since this will often be NaN for players that didn't make the roster
     ml_dataset.drop(inplace=True, columns='gsis_id')
     ml_dataset.dropna(inplace=True)
@@ -48,7 +48,7 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
     scatter_plot = sns.pairplot(vis, hue='Classification_All', diag_kind='scatter')
     scatter_plot.savefig('../ml_models/feature_selection/' + unit_key + '_featureplot.png')
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25 , random_state=42069)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42069)
 
     player_names_train = x_train['full_player_name']
     player_names_test = x_test['full_player_name']
@@ -88,11 +88,11 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
 
         if random_search:
             print("Running RandomizedSearchCV for %s." % name)
-            gs = RandomizedSearchCV(model, parameterset, cv=kfold, n_iter=100, scoring=scoring, verbose=2,
+            gs = RandomizedSearchCV(model, parameterset, cv=kfold, n_iter=100, scoring=scoring, verbose=0,
                                     return_train_score=True)
         else:
             print("Running GridSearchCV for %s." % name)
-            gs = GridSearchCV(model, parameterset, cv=kfold, scoring=scoring, verbose=2, return_train_score=True)
+            gs = GridSearchCV(model, parameterset, cv=kfold, scoring=scoring, verbose=0, return_train_score=True)
 
         gs.fit(x_train, y_train.iloc[:, 0])
         grid_searches[name] = gs

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import python_scripts.utils.unit_keys as Units
 
@@ -25,6 +26,28 @@ def align_positions(position):
         return position
 
 
+def merge_transferred_players(aggregated_stats):
+    aggregated_stats['pk_id'] = np.NaN
+    for (index, row) in aggregated_stats.iterrows():
+        # see if player exists multiple times in dataframe
+        working_df = aggregated_stats[aggregated_stats['name'] == row['name']][
+            aggregated_stats['unit_key'] == row['unit_key']]
+        if working_df.shape[0] <= 1:
+            aggregated_stats.at[index, 'pk_id'] = aggregated_stats.at[
+                index, 'Player Code']  # set local pk for aggregating later
+            continue  # Player only exists once
+
+        # player exists multiple times (and is less than 3 years apart in college (likely to be the same player)
+        elif (working_df['draft_season'].max() - working_df['draft_season'].min()) < 3:
+            # get index of other rows
+            for (_, working_df_row) in working_df.iterrows():
+                aggregated_stats.at[working_df_row.name, 'pk_id'] = working_df['Player Code'].iloc[0]
+                # Set to first appearing id
+            # aggregated_stats.at[index, 'pk_id'] = working_df['Player Code'][0]
+            continue  # Difference between active seasons too big - probably not a transfer
+    return aggregated_stats.dropna(subset=['pk_id'])
+
+
 # support for units: WR, RB, QB, DL, LB, DB, TE
 def select_features_for_unit(ml_dataset, unit_key):
     if unit_key == Units.WR.KEY:
@@ -32,9 +55,7 @@ def select_features_for_unit(ml_dataset, unit_key):
             ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
     if unit_key == Units.RB.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
-    #             ['age', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
-    #             'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD']]
+            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]  # Rec, Rush Att
     if unit_key == Units.LB.KEY:
         return []
     if unit_key == Units.DL.KEY:
@@ -43,8 +64,8 @@ def select_features_for_unit(ml_dataset, unit_key):
         return []
     if unit_key == Units.QB.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD',
-             'Pass Int']]
+            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Pass Comp', 'Pass TD',
+             'Pass Int', 'Comp Percentage']]  # 'Pass Yard', 'Pass Att',
     if unit_key == Units.TE.KEY:
         return ml_dataset[
             ['full_player_name', 'Rec', 'Rec Yards', 'Rec TD']]
@@ -77,7 +98,7 @@ def write_nfl_players_to_csv(data, unit_key):
 
 
 def write_nfl_players_to_csv_no_stats(data, unit_key, classifier_columns=None):
-    standard_columns = ['full_player_name', 'unit_key', 'gsis_id', 'Classification_All']
+    standard_columns = ['full_player_name', 'unit_key', 'gsis_id', 'Classification_All', 'Classification_All_num']
 
     # only 'all' classification done - therefore no need for other classifier columns
     if classifier_columns is not None:
@@ -149,6 +170,7 @@ def read_and_normalize_player_data_for_year(year, position_column):
         "../unprocessed_college_data/collegefootballstatistics/cfbstats-com-" + str(year) + "-1-5-0/player.csv")
     player_data_for_year["season"] = year
     player_data_for_year["draft_season"] = year + 1
+    player_data_for_year["season_counter"] = 1
     player_data_for_year["name"] = player_data_for_year["First Name"] + " " + player_data_for_year["Last Name"]
     player_data_for_year = normalize_positions_of_players(player_data_for_year, position_column)
     return player_data_for_year
@@ -165,6 +187,7 @@ def read_player_statistics_for_years(including_from, excluding_to):
     for i in range(including_from, excluding_to):
         yearly_stats = pd.read_csv('../unprocessed_college_data/collegefootballstatistics/cfbstats-com-' + str(
             i) + '-1-5-0/player-game-statistics.csv')
+        yearly_stats['season_count'] = 1
         df = df.append(yearly_stats)
     return df
 
@@ -173,58 +196,71 @@ def get_position_specific_data(dataset, unit_key):
     return dataset.query("unit_key=='" + unit_key + "'")
 
 
+def drop_rows_with_sum_lower_than(dataset, columns, threshold=200):
+    return dataset.drop(dataset[dataset[columns].sum(axis=1) < threshold].index, inplace=False)
+
+
 def use_rb_columns_only(dataset):
     rb_columns = base_columns.copy()
-    rb_columns.extend(
-        ['Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
-         'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD', 'Fumble', 'Fumble Lost'])
+    rb_specific_columns = ['Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret',
+                           'Kickoff Ret Yard',
+                           'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD', 'Fumble', 'Fumble Lost']
+    rb_columns.extend(rb_specific_columns)
+    dataset = drop_rows_with_sum_lower_than(dataset, rb_specific_columns, 200)
     rb_cols = dataset[rb_columns]
     return rb_cols
 
 
 def use_wr_columns_only(dataset):
     wr_columns = base_columns.copy()
-    wr_columns.extend(
-        ['Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret', 'Kickoff Ret Yard',
-         'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD'])
+    wr_specific_columns = ['Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD', 'Kickoff Ret',
+                           'Kickoff Ret Yard',
+                           'Kickoff Ret TD', 'Punt Ret Yard', 'Punt Ret TD']
+    dataset = drop_rows_with_sum_lower_than(dataset, wr_specific_columns, 200)
+    wr_columns.extend(wr_specific_columns)
     wr_cols = dataset[wr_columns]
     return wr_cols
 
 
 def use_dl_columns_only(dataset):
     dl_columns = base_columns.copy()
-    dl_columns.extend(
-        ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att', 'Rush Yard',
-         'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
-         'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up'])
+    dl_specific_columns = ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att',
+                           'Rush Yard', 'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
+                           'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up']
+    dl_columns.extend(dl_specific_columns)
+    dataset = drop_rows_with_sum_lower_than(dataset, dl_specific_columns, 10)
     dl_cols = dataset[dl_columns]
     return dl_cols
 
 
 def use_lb_columns_only(dataset):
     lb_columns = base_columns.copy()
-    lb_columns.extend(
-        ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att', 'Rush Yard',
-         'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
-         'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up'])
+    lb_specific_columns = ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att',
+                           'Rush Yard', 'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
+                           'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up']
+    lb_columns.extend(lb_specific_columns)
+    dataset = drop_rows_with_sum_lower_than(dataset, lb_specific_columns, 20)
     lb_cols = dataset[lb_columns]
     return lb_cols
 
 
 def use_qb_columns_only(dataset):
     qb_columns = base_columns.copy()
-    qb_columns.extend(
-        ['Rush Att', 'Rush Yard', 'Rush TD', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD', 'Pass Int', 'Pass Conv'])
+    qb_specific_columns = ['Rush Att', 'Rush Yard', 'Rush TD', 'Pass Att', 'Pass Comp', 'Pass Yard', 'Pass TD',
+                           'Pass Int', 'Pass Conv', 'Comp Percentage']
+    qb_columns.extend(qb_specific_columns)
+    dataset = drop_rows_with_sum_lower_than(dataset, qb_specific_columns, 750)
     qb_cols = dataset[qb_columns]
     return qb_cols
 
 
 def use_db_columns_only(dataset):
     db_columns = base_columns.copy()
-    db_columns.extend(
-        ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att', 'Rush Yard',
-         'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
-         'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up'])
+    db_specific_columns = ['Fum Ret', 'Fum Ret Yard', 'Fum Ret TD', 'Int Ret', 'Int Ret Yard', 'Int Ret TD', 'Rush Att',
+                           'Rush Yard', 'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Tackle For Loss Yard',
+                           'Sack', 'Sack Yard', 'QB Hurry', 'Fumble Forced', 'Pass Broken Up']
+    db_columns.extend(db_specific_columns)
+    dataset = drop_rows_with_sum_lower_than(dataset, db_specific_columns, 20)
     db_cols = dataset[db_columns]
     return db_cols
 
@@ -264,3 +300,82 @@ def drop_position_irrelevant_columns(dataset, position=None):
     if position == Units.K:
         return use_kicker_columns_only(dataset)
     return None
+
+
+def get_college_player_aggregation_function():
+    return {
+        'Player Code': 'first',
+        'Rush Att': 'sum',
+        'Rush Yard': 'sum',
+        'Rush TD': 'sum',
+        'Pass Att': 'sum',
+        'Pass Comp': 'sum',
+        'Pass Yard': 'sum',
+        'Pass TD': 'sum',
+        'Pass Int': 'sum',
+        'Pass Conv': 'sum',
+        'Rec': 'sum',
+        'Rec Yards': 'sum',
+        'Rec TD': 'sum',
+        'Kickoff Ret': 'sum',
+        'Kickoff Ret Yard': 'sum',
+        'Kickoff Ret TD': 'sum',
+        'Punt Ret': 'sum',
+        'Punt Ret Yard': 'sum',
+        'Punt Ret TD': 'sum',
+        'Fum Ret': 'sum',
+        'Fum Ret Yard': 'sum',
+        'Fum Ret TD': 'sum',
+        'Int Ret': 'sum',
+        'Int Ret Yard': 'sum',
+        'Int Ret TD': 'sum',
+        'Misc Ret': 'sum',
+        'Misc Ret Yard': 'sum',
+        'Misc Ret TD': 'sum',
+        'Field Goal Att': 'sum',
+        'Field Goal Made': 'sum',
+        'Off XP Kick Att': 'sum',
+        'Off XP Kick Made': 'sum',
+        'Off 2XP Att': 'sum',
+        'Off 2XP Made': 'sum',
+        'Def 2XP Att': 'sum',
+        'Def 2XP Made': 'sum',
+        'Safety': 'sum',
+        'Points': 'sum',
+        'Punt': 'sum',
+        'Punt Yard': 'sum',
+        'Kickoff': 'sum',
+        'Kickoff Yard': 'sum',
+        'Kickoff Touchback': 'sum',
+        'Kickoff Out-Of-Bounds': 'sum',
+        'Kickoff Onside': 'sum',
+        'Fumble': 'sum',
+        'Fumble Lost': 'sum',
+        'Tackle Solo': 'sum',
+        'Tackle Assist': 'sum',
+        'Tackle For Loss': 'sum',
+        'Tackle For Loss Yard': 'sum',
+        'Sack': 'sum',
+        'Sack Yard': 'sum',
+        'QB Hurry': 'sum',
+        'Fumble Forced': 'sum',
+        'Pass Broken Up': 'sum',
+        'Kick/Punt Blocked': 'sum',
+        'Team Code': 'last',
+        'Last Name': 'first',
+        'First Name': 'first',
+        'Uniform Number': 'last',
+        'Class': 'last',
+        'Position': 'last',
+        'Height': 'last',
+        'Weight': 'last',
+        'Home Town': 'last',
+        'Home State': 'last',
+        'Home Country': 'last',
+        'Last School': 'last',
+        'season': 'last',
+        'draft_season': 'last',
+        'season_counter': 'last',
+        'name': 'last',
+        'unit_key': 'last'
+    }

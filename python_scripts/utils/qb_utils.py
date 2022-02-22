@@ -31,6 +31,7 @@ def merge_duplicate_qb_rows(dataset):
         'Pass Yard': 'sum',
         'Pass TD': 'sum',
         'Pass Int': 'sum',
+        'Comp Percentage': 'first'
     }
     merged_dataset = dataset.groupby(dataset['Player Code']).aggregate(aggregation_functions)
     return merged_dataset

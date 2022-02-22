@@ -36,6 +36,7 @@ def save_position_specific_statistics(aggregated_stats):
     rb_data = offense_utils.merge_duplicate_offense_rows(rb_data)
 
     qb_data = qb_utils.merge_duplicate_qb_rows(qb_data)
+    qb_data.dropna(inplace=True, subset=['Comp Percentage'])
 
     dl_data = defense_utils.merge_duplicate_defense_rows(dl_data)
     db_data = defense_utils.merge_duplicate_defense_rows(db_data)
@@ -70,6 +71,12 @@ def process_college_data():
     # Combine statistics and names
     aggregated_stats = player_statistics.groupby('Player Code', as_index=False).sum()
     aggregated_stats = aggregated_stats.merge(player_data, how='left', on='Player Code')
+
+    aggregated_stats = nfl.merge_transferred_players(aggregated_stats)
+    aggregated_stats = aggregated_stats.groupby('pk_id', as_index=False).agg(
+        nfl.get_college_player_aggregation_function())
+
+    aggregated_stats['Comp Percentage'] = aggregated_stats['Pass Comp'] / aggregated_stats['Pass Att']
 
     save_position_specific_statistics(aggregated_stats)
 

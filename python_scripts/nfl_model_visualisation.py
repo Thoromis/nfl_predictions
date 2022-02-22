@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn import metrics
-from sklearn.metrics import confusion_matrix, plot_confusion_matrix, accuracy_score, roc_auc_score
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix, accuracy_score, roc_auc_score, RocCurveDisplay, \
+    PrecisionRecallDisplay
 
 import utils.unit_keys as Units
 
@@ -17,6 +18,7 @@ def encode_array_numeric(array):
             result_array.append(1)
     return result_array
 
+
 # Visualize model performance according to different metrics:
 # - ROC: Receiver operating characteristic (TPR vs FPR): This curve is visualized for the best models in each category
 # - AUC: Area-under-curve is calculated to compare models with each other
@@ -27,7 +29,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     grid_searches = joblib.load('../ml_models/' + unit_key + '_trained_models.sav')
 
     unit_class = Units.parse_unit(unit_key)
-    scoring = grid_searches['Baseline'].scoring
+    # scoring = grid_searches['Baseline'].scoring
     labels = []
     train_accuracies = []
     test_accuracies = []
@@ -83,21 +85,37 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
         y_test_predictions.append(y_test_pred_num)
 
     # Collected ROC curve for models
-    plt.figure()
+    print('Combined ROC curve for all models')
+    fig, ax = plt.subplots()
 
     for i in range(0, len(y_test_predictions)):
         name = unit_class.names[i]
         gs = grid_searches[name]
 
-        y_score = y_test_predictions[i]
-        fpr, tpr, _ = metrics.roc_curve(y_test, y_score, pos_label='Good')
-        plt.plot(fpr, tpr, label=name + " (AUC= {0:0.2f}".format(test_rocauc_scores[i]) + ")")
+        curve = RocCurveDisplay.from_estimator(estimator=gs, X=x_test, y=y_test, pos_label='Good', name=name, ax=ax)
+        # fpr, tpr, _ = metrics.roc_curve(y_test, y_score, pos_label='Good')
+        # plt.plot(fpr, tpr, label=name + " (AUC= {0:0.2f}".format(test_rocauc_scores[i]) + ")")
 
     plt.legend(loc=4)
     plt.title(label='ROC AUC Curve')
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.savefig('../ml_model_visualisations/' + unit_key + '/' + 'combined_roc_curve.png')
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/' + 'combined_roc_curve.svg')
+    plt.show()
+
+    print('Combined Precision Recall curve for all models')
+    fig, ax = plt.subplots()
+
+    for i in range(0, len(y_test_predictions)):
+        name = unit_class.names[i]
+        gs = grid_searches[name]
+
+        curve = PrecisionRecallDisplay.from_estimator(estimator=gs, X=x_test, y=y_test, pos_label='Good', name=name, ax=ax)
+
+    plt.title(label='Precision Recall Curve')
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/combined_prec_rec_curve.svg')
     plt.show()
 
     # RocAuc plots

@@ -10,7 +10,8 @@ import numpy as np
 # interesting tuning thoughts: https://medium.com/all-things-ai/in-depth-parameter-tuning-for-svc-758215394769
 
 names = [
-    "Baseline",
+    "Baseline_best",
+    "Baseline_MostFrequent",
     "NearestNeighbors",
     # "SVC",
     # "GaussianNB",
@@ -20,7 +21,8 @@ names = [
 ]
 
 classifiers = {
-    'Baseline': DummyClassifier(),
+    'Baseline_Best': DummyClassifier(),
+    'Baseline_MostFrequent': DummyClassifier(),
     'NearestNeighbors': KNeighborsClassifier(),
     # 'SVC': SVC(),
     # 'GaussianNB': GaussianNB(),
@@ -30,8 +32,9 @@ classifiers = {
 }
 
 params = {
-    'Baseline': {'strategy': ['most_frequent', 'stratified', 'uniform']},
-    'NearestNeighbors': {'n_neighbors': [2]},
+    'Baseline_Best': {'strategy': ['most_frequent', 'stratified', 'uniform']},
+    'Baseline_MostFrequent': {'strategy': ['most_frequent']},
+    'NearestNeighbors': {'n_neighbors': [2, 3, 4, 5, 6, 7, 8, 9, 10]},
     # 'SVC': [
     # Linear ==> better with smaller C, but in general pretty useless
     # RBF ==> better with higher C

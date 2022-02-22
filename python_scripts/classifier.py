@@ -1,23 +1,24 @@
 from enum import Enum
+
+import pandas as pd
+
 import utils.unit_keys as Units
 
 
 # Classify players by all the given classifiers combined
 def classify_dataframe(data, classifiers, unit=Units.WR):
     data['Classification_All'] = data.apply(axis=1, func=lambda x: classify_row(x, classifiers, unit))
+    data['Classification_All_num'] = data.apply(axis=1, func=lambda x: classify_row(x, classifiers, unit, True))
 
 
 def classify_by_single_classifier(data, classifiers, unit=Units.WR):
     for classifier in classifiers:
         data[classifier.__str__()] = data.apply(axis=1, func=lambda x: classify_row(x, [classifier], unit))
 
-    # data['Classification_YearsInNFL'] = data.apply(axis=1, func=lambda x: classify_row(x, Classifier.BY_YEARS_IN_NFL))
-    # data['Classification_Total_Yards'] = data.apply(axis=1, func=lambda x: classify_row(x, Classifier.BY_TOTAL_YARDS))
 
-
-def classify_row(row, classifiers, unit):
+def classify_row(row, classifiers, unit, classify_numeric=False):
     if len(classifiers) == 0:
-        return 'Good'
+        return 1 if classify_numeric else 'Good'
 
     classification_threshold = unit.CLASSIFICATION_THRESHOLD
 
@@ -53,11 +54,14 @@ def classify_row(row, classifiers, unit):
             result += classify_by_def_pass_incompletions(row, unit.MAX_INCOMPLETE_PASSES_THRESHOLD)
         elif classifier == Classifier.BY_INTERCEPTIONS_CAUGHT:
             result += classify_by_caught_interceptions(row, unit.MAX_CAUGHT_INTS_THRESHOLD)
+        if pd.isna(result):
+            print("Result is NA for " + row['full_player_name'])
+            print(str(row))
 
     if result / len(classifiers) >= classification_threshold:
-        return 'Good'
+        return 'Good' if not classify_numeric else (result / len(classifiers))
     else:
-        return 'Bust'
+        return 'Bust' if not classify_numeric else (result / len(classifiers))
 
 
 def classify_by_interceptions(row, max_threshold=Units.QB.MAX_INT_THRESHOLD):
