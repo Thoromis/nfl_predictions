@@ -52,7 +52,7 @@ def merge_transferred_players(aggregated_stats):
 def select_features_for_unit(ml_dataset, unit_key):
     if unit_key == Units.WR.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Rec', 'Rec Yards', 'Rec TD']]
+            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']] # Rush Att, Rec
     if unit_key == Units.RB.KEY:
         return ml_dataset[
             ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]  # Rec, Rush Att

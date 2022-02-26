@@ -110,7 +110,8 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
         name = unit_class.names[i]
         gs = grid_searches[name]
 
-        curve = PrecisionRecallDisplay.from_estimator(estimator=gs, X=x_test, y=y_test, pos_label='Good', name=name, ax=ax)
+        curve = PrecisionRecallDisplay.from_estimator(estimator=gs, X=x_test, y=y_test, pos_label='Good', name=name,
+                                                      ax=ax)
 
     plt.title(label='Precision Recall Curve')
     plt.xlabel("Recall")
@@ -151,3 +152,9 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     plt.tight_layout()
     plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_acc.png')
     plt.show()
+
+    for idx in range(0, len(labels)):
+        print("Accuracy for best " + labels[idx] + " model")
+        print("Train: " + str(train_accuracies[idx]))
+        print("Test: " + str(test_accuracies[idx]))
+        print("____________________________________________")

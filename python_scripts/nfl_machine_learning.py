@@ -4,6 +4,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ def add_array_to_df_as_rows(array, df):
     return df.append(pd.DataFrame(array, columns=list(df)))
 
 
-def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=False, unbalanced=False):
+def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=False, unbalanced=False, scale_data=False):
     print("Started ML pipeline for " + unit_key.upper())
     ml_dataset = nfl.read_merged_file_for_unit(unit_key)
 
@@ -46,7 +47,7 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
 
     # check the features we selected in scatterplot
     scatter_plot = sns.pairplot(vis, hue='Classification_All', diag_kind='scatter')
-    scatter_plot.savefig('../ml_models/feature_selection/' + unit_key + '_featureplot.png')
+    scatter_plot.savefig('../ml_models/feature_selection/' + unit_key + '_featureplot.svg')
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=42069)
 
@@ -78,7 +79,17 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
         print("Training data: " + str(y_train.value_counts()))
         print("Test data: " + str(y_test.value_counts()))
 
-    kfold = KFold(n_splits=3, shuffle=True, random_state=4711)
+    # Scale x-data if applicable
+    if scale_data:
+        print("Scaling input data around 0")
+        scaler = StandardScaler()
+        columns = x_train.columns
+        x_train = scaler.fit_transform(x_train, y)
+        x_test = scaler.fit_transform(x_test, y)
+        x_train = pd.DataFrame(data=x_train, columns=columns)
+        x_test = pd.DataFrame(data=x_test, columns=columns)
+
+    kfold = KFold(n_splits=5, shuffle=True, random_state=4711)
     grid_searches = {}
 
     # fit for all defined models and parameter configurations
@@ -88,11 +99,11 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
 
         if random_search:
             print("Running RandomizedSearchCV for %s." % name)
-            gs = RandomizedSearchCV(model, parameterset, cv=kfold, n_iter=100, scoring=scoring, verbose=0,
+            gs = RandomizedSearchCV(model, parameterset, cv=kfold, n_iter=300, scoring=scoring, verbose=3, n_jobs=-1,
                                     return_train_score=True)
         else:
             print("Running GridSearchCV for %s." % name)
-            gs = GridSearchCV(model, parameterset, cv=kfold, scoring=scoring, verbose=0, return_train_score=True)
+            gs = GridSearchCV(model, parameterset, cv=kfold, scoring=scoring, verbose=3, return_train_score=True,  n_jobs=-1,)
 
         gs.fit(x_train, y_train.iloc[:, 0])
         grid_searches[name] = gs
