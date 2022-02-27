@@ -22,6 +22,57 @@ class DB:
     MAX_SEASON_THRESHOLD = 5.6  # (taken from WR)
     CLASSIFICATION_THRESHOLD = 0.4
 
+    names = [
+        "Baseline_best",
+        "Baseline_MostFrequent",
+        "SVC",
+        "NearestNeighbors",
+        "DecisionTree",
+        "RandomForest",
+        "NN",
+    ]
+
+    classifiers = {
+        'Baseline_best': DummyClassifier(),
+        'Baseline_MostFrequent': DummyClassifier(),
+        'SVC': SVC(random_state=4711),
+        'NearestNeighbors': KNeighborsClassifier(),
+        'DecisionTree': DecisionTreeClassifier(random_state=4711),
+        'RandomForest': RandomForestClassifier(random_state=4711),
+        'NN': MLPClassifier(random_state=4711)
+    }
+
+    params = {
+        'Baseline_best': {'strategy': ['most_frequent', 'stratified', 'uniform']},
+        'Baseline_MostFrequent': {'strategy': ['most_frequent']},
+        'NearestNeighbors': {'n_neighbors': [5]},
+        'SVC': {'kernel': ['rbf'],
+                'C': [100000],
+                },
+        # max_depth=150, min_samples_split=0.05, max_features=2,auc=0.71
+        'DecisionTree': {
+            'max_depth': [16],
+            'min_samples_split': [0.02],
+            'min_samples_leaf': [1],
+            'max_features': [1]
+        },
+        'RandomForest': {'max_depth': [8],
+                         'n_estimators': [55],
+                         'min_samples_split': [0.05],
+                         'min_samples_leaf': [2],
+                         'max_features': [1]
+                         },
+        # 'max_iter': 1000, 'learning_rate': 'constant', 'hidden_layer_sizes': 100, 'early_stopping': False, 'batch_size': 10, 'alpha': 0.001, 'activation': 'relu'
+        'NN': {'hidden_layer_sizes': [100],
+               'alpha': [0.001],
+               'activation': ['relu'],
+               'batch_size': [10],
+               'learning_rate': ['constant'],
+               'max_iter': [900],
+               'early_stopping': [False]
+               }
+    }
+
 
 # Average time in NFL for all positions: 3.3 years (no data found for defense)
 # https://www.fftoday.com/stats/playerstats.php?Season=2021&GameWeek=&PosID=60&LeagueID=
@@ -39,6 +90,57 @@ class LB:
     MAX_SEASON_THRESHOLD = 5.2  # (taken from RB)
     CLASSIFICATION_THRESHOLD = 0.45
 
+    names = [
+        "Baseline_best",
+        "Baseline_MostFrequent",
+        "SVC",
+        "NearestNeighbors",
+        "DecisionTree",
+        "RandomForest",
+        "NN",
+    ]
+
+    classifiers = {
+        'Baseline_best': DummyClassifier(),
+        'Baseline_MostFrequent': DummyClassifier(),
+        'SVC': SVC(random_state=4711),
+        'NearestNeighbors': KNeighborsClassifier(),
+        'DecisionTree': DecisionTreeClassifier(random_state=4711),
+        'RandomForest': RandomForestClassifier(random_state=4711),
+        'NN': MLPClassifier(random_state=4711)
+    }
+
+    params = {
+        'Baseline_best': {'strategy': ['most_frequent', 'stratified', 'uniform']},
+        'Baseline_MostFrequent': {'strategy': ['most_frequent']},
+        'NearestNeighbors': {'n_neighbors': [5]},
+        'SVC': {'kernel': ['rbf'],
+                'C': [100000],
+                },
+        # max_depth=150, min_samples_split=0.05, max_features=2,auc=0.71
+        'DecisionTree': {
+            'max_depth': [16],
+            'min_samples_split': [0.02],
+            'min_samples_leaf': [1],
+            'max_features': [1]
+        },
+        'RandomForest': {'max_depth': [8],
+                         'n_estimators': [55],
+                         'min_samples_split': [0.05],
+                         'min_samples_leaf': [2],
+                         'max_features': [1]
+                         },
+        # 'max_iter': 1000, 'learning_rate': 'constant', 'hidden_layer_sizes': 100, 'early_stopping': False, 'batch_size': 10, 'alpha': 0.001, 'activation': 'relu'
+        'NN': {'hidden_layer_sizes': [100],
+               'alpha': [0.001],
+               'activation': ['relu'],
+               'batch_size': [10],
+               'learning_rate': ['constant'],
+               'max_iter': [900],
+               'early_stopping': [False]
+               }
+    }
+
 
 # Average time in NFL for all positions: 3.3 years (no data found for defense)
 # https://www.pro-football-reference.com/years/2020/defense.htm
@@ -54,6 +156,68 @@ class DL:
     MAX_FORCED_FUMBLES_THRESHOLD = 3.3 * 1 * 2
     MAX_SEASON_THRESHOLD = 5.2  # (taken from RB)
     CLASSIFICATION_THRESHOLD = 0.35
+
+    names = [
+        "Baseline_best",
+        "Baseline_MostFrequent",
+        "SVC",
+        "NearestNeighbors",
+        "DecisionTree",
+        "RandomForest",
+        "NN",
+    ]
+
+    classifiers = {
+        'Baseline_best': DummyClassifier(),
+        'Baseline_MostFrequent': DummyClassifier(),
+        'SVC': SVC(random_state=4711),
+        'NearestNeighbors': KNeighborsClassifier(),
+        'DecisionTree': DecisionTreeClassifier(random_state=4711),
+        'RandomForest': RandomForestClassifier(random_state=4711),
+        'NN': MLPClassifier(random_state=4711)
+    }
+
+    params = {
+        'Baseline_best': {'strategy': ['most_frequent', 'stratified', 'uniform']},
+        'Baseline_MostFrequent': {'strategy': ['most_frequent']},
+        'NearestNeighbors': {'n_neighbors': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]},
+        'SVC': {'kernel': ['rbf'],
+                'C': [10000],  # 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000],
+                },
+        # max_depth=150, min_samples_split=0.05, max_features=2,auc=0.71
+        #{'max_depth': 20, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.05} model
+        # {'max_depth': 21, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.03} model
+        # {'max_depth': 21, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.01} model
+        'DecisionTree': {
+            'max_depth': [21],
+            'min_samples_split': [0.04],
+            'min_samples_leaf': [1],
+            'max_features': [2]
+        },
+        # Accuracy for best RandomForest{'max_depth': 20, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.05, 'n_estimators': 32} model
+        # Accuracy for best RandomForest{'max_depth': 22, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.03, 'n_estimators': 36} model
+        # Accuracy for best RandomForest{'max_depth': 22, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.01, 'n_estimators': 38} model
+        'RandomForest': {'max_depth': [22],
+                         'n_estimators': [38],
+                         'min_samples_split': [0.05],
+                         'min_samples_leaf': [2],
+                         'max_features': [4]
+                         },
+        # NN{'max_iter': 1500, 'learning_rate': 'invscaling', 'hidden_layer_sizes': 500, 'early_stopping': False, 'batch_size': 50, 'alpha': 0.001, 'activation': 'tanh'} model, 0.62, 0.10
+        # NN{'max_iter': 2000, 'learning_rate': 'constant', 'hidden_layer_sizes': 100, 'early_stopping': False, 'batch_size': 150, 'alpha': 0.001, 'activation': 'tanh'} model, 0.67, 0.12
+        # NN{'max_iter': 1500, 'learning_rate': 'constant', 'hidden_layer_sizes': 250, 'early_stopping': False, 'batch_size': 50, 'alpha': 0.001, 'activation': 'tanh'} model
+        # NN{'activation': 'tanh', 'alpha': 0.001, 'batch_size': 50, 'early_stopping': False, 'hidden_layer_sizes': 500, 'learning_rate': 'constant', 'max_iter': 1000}
+        # NN{'activation': 'tanh', 'alpha': 0.0001, 'batch_size': 150, 'early_stopping': False, 'hidden_layer_sizes': 100, 'learning_rate': 'constant', 'max_iter': 1900}, 0,72, 0,15
+        # NN{'activation': 'tanh', 'alpha': 0.0001, 'batch_size': 150, 'early_stopping': False, 'hidden_layer_sizes': 100, 'learning_rate': 'constant', 'max_iter': 1850}
+        'NN': {'hidden_layer_sizes': [100],
+               'alpha': [0.0001],
+               'activation': ['tanh'],
+               'batch_size': [150],
+               'learning_rate': ['constant'],
+               'max_iter': [860],
+               'early_stopping': [True]
+               }
+    }
 
 
 # unused

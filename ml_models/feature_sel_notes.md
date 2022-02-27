@@ -93,6 +93,28 @@ Feature selection:
 ## DBs
 
 ## DL
+Features:
+
+- Broken up passes not really that relevant --> leave it out
+- Tackles for loss and Sacks are the only statistic that is even remotely redundant, will try without
+- Rest of the features stays in
+
+### Best Models
+
+- SVC: SVC{'C': 10000, 'kernel': 'rbf'}
+  - no scaling, with resampling
+- NN: {'activation': 'tanh', 'alpha': 0.0001, 'batch_size': 150, 'early_stopping': True, 'hidden_layer_sizes': 100, 'learning_rate': 'constant', 'max_iter': 860}
+  - no scaling, with resampling
+  - without features: Tackle Assist: 0.78, 0.22
+  - without Tackle Solo: 0.77, 0.20
+- NearestNeighbors{'n_neighbors': 7}
+  - no scaling, resampling
+- RandomForest{'max_depth': 22, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.05, 'n_estimators': 38}
+  - no scaling, resampling
+- DecisionTree{'max_depth': 21, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.04}
+  - no scaling, resampling
+
+![here](./feature_selection/DL_featureplot.svg)
 
 ## NOTES
 

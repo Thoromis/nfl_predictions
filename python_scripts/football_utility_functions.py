@@ -52,23 +52,26 @@ def merge_transferred_players(aggregated_stats):
 def select_features_for_unit(ml_dataset, unit_key):
     if unit_key == Units.WR.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']] # Rush Att, Rec
+            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]
     if unit_key == Units.RB.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]  # Rec, Rush Att
+            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]
     if unit_key == Units.LB.KEY:
-        return []
+        return ml_dataset[
+            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]  # Rush Att, Rec
     if unit_key == Units.DL.KEY:
-        return []
+        return ml_dataset[
+            ['full_player_name', 'Tackle Solo', 'Sack', 'QB Hurry', 'Fumble Forced',]]
+            # Rush Att, Rec, 'Pass Broken Up'
     if unit_key == Units.DB.KEY:
-        return []
+        return ml_dataset[
+            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]  # Rush Att, Rec
     if unit_key == Units.QB.KEY:
         return ml_dataset[
             ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Pass Comp', 'Pass TD',
              'Pass Int', 'Comp Percentage']]  # 'Pass Yard', 'Pass Att',
     if unit_key == Units.TE.KEY:
-        return ml_dataset[
-            ['full_player_name', 'Rec', 'Rec Yards', 'Rec TD']]
+        return ml_dataset[['full_player_name', 'Rec', 'Rec Yards', 'Rec TD']]
 
 
 def normalize_positions_of_players(data, position_column_key):
