@@ -49,6 +49,9 @@ def merge_transferred_players(aggregated_stats):
 
 
 # support for units: WR, RB, QB, DL, LB, DB, TE
+# ,Team Code,name,unit_key,draft_season,Fum Ret,Fum Ret Yard,Fum Ret TD,Int Ret,
+# Int Ret Yard,Int Ret TD,Tackle Solo,Tackle Assist,Tackle For Loss,Sack,QB Hurry,
+# Fumble Forced,Pass Broken Up,full_player_name,gsis_id,Classification_All,Classification_All_num
 def select_features_for_unit(ml_dataset, unit_key):
     if unit_key == Units.WR.KEY:
         return ml_dataset[
@@ -58,14 +61,15 @@ def select_features_for_unit(ml_dataset, unit_key):
             ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]
     if unit_key == Units.LB.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]  # Rush Att, Rec
+            ['full_player_name', 'Tackle Solo', 'Sack', 'QB Hurry', 'Fumble Forced',]]
     if unit_key == Units.DL.KEY:
         return ml_dataset[
             ['full_player_name', 'Tackle Solo', 'Sack', 'QB Hurry', 'Fumble Forced',]]
             # Rush Att, Rec, 'Pass Broken Up'
     if unit_key == Units.DB.KEY:
         return ml_dataset[
-            ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]  # Rush Att, Rec
+            ['full_player_name', 'Tackle Solo', 'Tackle Assist', 'Tackle For Loss', 'Fumble Forced',
+             'Pass Broken Up', 'Int Ret', 'Sack', ]]
     if unit_key == Units.QB.KEY:
         return ml_dataset[
             ['full_player_name', 'Rush Att', 'Rush Yard', 'Rush TD', 'Pass Comp', 'Pass TD',

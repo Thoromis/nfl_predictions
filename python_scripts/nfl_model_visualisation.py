@@ -112,6 +112,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
 
         curve = PrecisionRecallDisplay.from_estimator(estimator=gs, X=x_test, y=y_test, pos_label='Good', name=name,
                                                       ax=ax)
+        ax.legend(loc='upper right')
 
     plt.title(label='Precision Recall Curve')
     plt.xlabel("Recall")

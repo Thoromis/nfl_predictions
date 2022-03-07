@@ -9,7 +9,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 # Average time in NFL for all positions: 3.3 years (no data found for defense)
 # https://www.fftoday.com/stats/playerstats.php?Season=2021&GameWeek=&PosID=70&LeagueID=&order_by=Assist&sort_order=DESC
-class DB:
+class DB:  #
     KEY = 'DB'
     MAX_CAUGHT_INTS_THRESHOLD = 3.3 * 2 * 2
     MAX_INCOMPLETE_PASSES_THRESHOLD = 3.3 * 2 * 7.5
@@ -45,31 +45,44 @@ class DB:
     params = {
         'Baseline_best': {'strategy': ['most_frequent', 'stratified', 'uniform']},
         'Baseline_MostFrequent': {'strategy': ['most_frequent']},
-        'NearestNeighbors': {'n_neighbors': [5]},
-        'SVC': {'kernel': ['rbf'],
-                'C': [100000],
+        'NearestNeighbors': {'n_neighbors': [11]},
+        # Accuracy for best SVC{'kernel': 'poly', 'degree': 4, 'C': 0.0001} model
+        # Accuracy for best SVC{'C': 100000, 'kernel': 'rbf'} model --> 0.09, 0.63
+        # 10000, rbf --> 0.69, 0.10
+        # 1000, rbf --> 0.74, 0.15
+        # 100, rbf --> 0.78, 0.22
+        # 10 already goes towards less accuracy
+        'SVC': {'kernel': ['rbf'],  # 'logistic', 'poly'
+                'C': [100],
                 },
-        # max_depth=150, min_samples_split=0.05, max_features=2,auc=0.71
+        # Accuracy for best DecisionTree{'max_depth': 10, 'max_features': 4, 'min_samples_leaf': 1, 'min_samples_split': 0.05} model
+        # 0.68, 0.15
         'DecisionTree': {
-            'max_depth': [16],
-            'min_samples_split': [0.02],
+            'max_depth': [20],
+            'min_samples_split': [0.075],
             'min_samples_leaf': [1],
-            'max_features': [1]
+            'max_features': [6]
         },
-        'RandomForest': {'max_depth': [8],
-                         'n_estimators': [55],
-                         'min_samples_split': [0.05],
-                         'min_samples_leaf': [2],
-                         'max_features': [1]
+        # Accuracy for best RandomForest{'max_depth': 20, 'max_features': 3, 'min_samples_leaf': 2, 'min_samples_split': 0.05, 'n_estimators': 64} model
+        # 0.78, 0.16
+        'RandomForest': {'max_depth': [15],
+                         'n_estimators': [70],
+                         'min_samples_split': [0.9],
+                         'min_samples_leaf': [1],
+                         'max_features': [3]
                          },
-        # 'max_iter': 1000, 'learning_rate': 'constant', 'hidden_layer_sizes': 100, 'early_stopping': False, 'batch_size': 10, 'alpha': 0.001, 'activation': 'relu'
-        'NN': {'hidden_layer_sizes': [100],
-               'alpha': [0.001],
-               'activation': ['relu'],
-               'batch_size': [10],
+
+        # Accuracy for best NN{'max_iter': 500, 'learning_rate': 'adaptive', 'hidden_layer_sizes': 250, 'early_stopping': False, 'batch_size': 150, 'alpha': 0.01, 'activation': 'tanh'}
+        # Accuracy for best NN{'max_iter': 1000, 'learning_rate': 'constant', 'hidden_layer_sizes': 1000, 'early_stopping': False, 'batch_size': 100, 'alpha': 0.001, 'activation': 'tanh'}
+        # Accuracy for best NN{'activation': 'tanh', 'alpha': 0.001, 'batch_size': 100, 'early_stopping': False, 'hidden_layer_sizes': 1000, 'learning_rate': 'constant', 'max_iter': 1000}, 0.7, 0.15
+        # Accuracy for best NN{'activation': 'tanh', 'alpha': 0.001, 'batch_size': 100, 'early_stopping': False, 'hidden_layer_sizes': 1000, 'learning_rate': 'constant', 'max_iter': 1000} 0.7, 0.15
+        'NN': {'hidden_layer_sizes': [1000],
+               'alpha': [0.01], # try with one bigger, to maybe prevent overfitting
+               'activation': ['tanh'],
+               'batch_size': [100],
                'learning_rate': ['constant'],
-               'max_iter': [900],
-               'early_stopping': [False]
+               'max_iter': [500],
+               'early_stopping': [True]
                }
     }
 
@@ -185,7 +198,7 @@ class DL:
                 'C': [10000],  # 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000],
                 },
         # max_depth=150, min_samples_split=0.05, max_features=2,auc=0.71
-        #{'max_depth': 20, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.05} model
+        # {'max_depth': 20, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.05} model
         # {'max_depth': 21, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.03} model
         # {'max_depth': 21, 'max_features': 2, 'min_samples_leaf': 1, 'min_samples_split': 0.01} model
         'DecisionTree': {

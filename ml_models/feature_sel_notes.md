@@ -13,7 +13,7 @@ features.
   able to differentiate in a couple of edge cases (very high attempt ratio).
 - Comp Percentage will be included as it doesn't really correlate with any of the existing features so far.
 
-![here](./feature_selection/QB_featureplot.png)
+![here](./feature_selection/QB_featureplot.svg)
 
 ### Best models
 
@@ -32,7 +32,7 @@ For RBs, depending again on the scatter plot, the following features can be sort
 - Receptions and Reception Yards hold the same information - Yards will be chosen
 - The other features should hold a fair amount of information about the classification problem.
 
-![here](./feature_selection/RB_featureplot.png)
+![here](./feature_selection/RB_featureplot.svg)
 
 ### Best Models
 
@@ -91,6 +91,23 @@ Feature selection:
 ## LBs
 
 ## DBs
+No features seem to hold a great deal of redundancy with each other, therefore all the chosen ones will be kept.
+
+![here](./feature_selection/DB_featureplot.svg)
+
+### Best Models
+
+- SVC: rbf, C=100
+  - with resampling, no scaling
+- NN: {'activation': 'tanh', 'alpha': 0.01, 'batch_size': 100, 'early_stopping': True, 'hidden_layer_sizes': 1000, 'learning_rate': 'constant', 'max_iter': 500}
+  - with resampling, no scaling (0.79, 0.26, accuracy not that great but done for trade-off with auc/f1)
+- Nearest Neighbors: 15 neighbors
+  - no resampling, no scaling leads to best results
+- Random Forest: {'max_depth': 15, 'max_features': 3, 'min_samples_leaf': 1, 'min_samples_split': 0.1, 'n_estimators': 70
+  - with resampling, no scaling
+- Decision Tree: {'max_depth': 20, 'max_features': 6, 'min_samples_leaf': 1, 'min_samples_split': 0.075}
+  - resampling, but no scaling
+
 
 ## DL
 Features:
@@ -170,4 +187,10 @@ Never tune linear kernels --> takes forever and doesn't come to an end
                          'min_samples_leaf': [2, 3, 5],
                          'max_features': [1, 2, 3, 4]
                          },
+```
+
+### Nearest Neighbors
+
+```
+        'NearestNeighbors': {'n_neighbors': [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]},
 ```
