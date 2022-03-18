@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
+
 from sklearn.tree import DecisionTreeClassifier
 
 
@@ -77,7 +78,7 @@ class DB:  #
         # Accuracy for best NN{'activation': 'tanh', 'alpha': 0.001, 'batch_size': 100, 'early_stopping': False, 'hidden_layer_sizes': 1000, 'learning_rate': 'constant', 'max_iter': 1000}, 0.7, 0.15
         # Accuracy for best NN{'activation': 'tanh', 'alpha': 0.001, 'batch_size': 100, 'early_stopping': False, 'hidden_layer_sizes': 1000, 'learning_rate': 'constant', 'max_iter': 1000} 0.7, 0.15
         'NN': {'hidden_layer_sizes': [1000],
-               'alpha': [0.01], # try with one bigger, to maybe prevent overfitting
+               'alpha': [0.01],  # try with one bigger, to maybe prevent overfitting
                'activation': ['tanh'],
                'batch_size': [100],
                'learning_rate': ['constant'],
@@ -106,8 +107,8 @@ class LB:
     names = [
         "Baseline_best",
         "Baseline_MostFrequent",
-        "SVC",
         "NearestNeighbors",
+        "SVC",
         "DecisionTree",
         "RandomForest",
         "NN",
@@ -126,38 +127,51 @@ class LB:
     params = {
         'Baseline_best': {'strategy': ['most_frequent', 'stratified', 'uniform']},
         'Baseline_MostFrequent': {'strategy': ['most_frequent']},
-        'NearestNeighbors': {'n_neighbors': [5]},
-        'SVC': {'kernel': ['rbf'],
-                'C': [100000],
+        'NearestNeighbors': {'n_neighbors': [13, 14, 15]},
+        # Accuracy for best SVC{'C': 10000, 'kernel': 'rbf'} model, 0.44, 0.18
+        # Accuracy for best SVC{'C': 1000, 'degree': 4, 'kernel': 'poly'}, 0.67, 0.17
+        # Accuracy for best SVC{'C': 10000, 'degree': 3, 'kernel': 'poly'} 0.71, 0.18
+        'SVC': {'kernel': ['poly'],  # logistic, poly
+                'C': [10000],  # 0.00001, 0.0001, 100000
+                'degree': [3],
                 },
-        # max_depth=150, min_samples_split=0.05, max_features=2,auc=0.71
+        # 0.65, 0.10 - {'max_depth': 20, 'max_features': 3, 'min_samples_leaf': 1, 'min_samples_split': 0.05}
+        # 0.59, 0.07 - {'max_depth': 17, 'max_features': 6, 'min_samples_leaf': 2, 'min_samples_split': 0.05}
+        # worse {'max_depth': 20, 'max_features': 5, 'min_samples_leaf': 1, 'min_samples_split': 0.05} model
         'DecisionTree': {
-            'max_depth': [16],
-            'min_samples_split': [0.02],
+            'max_depth': [20],
+            'min_samples_split': [0.05],
             'min_samples_leaf': [1],
-            'max_features': [1]
+            'max_features': [3]
         },
-        'RandomForest': {'max_depth': [8],
-                         'n_estimators': [55],
-                         'min_samples_split': [0.05],
+        # 0.79, 0.13 - {'max_depth': 20, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.05, 'n_estimators': 64}
+        # 0.78, 0.12 - {'max_depth': 19, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.05, 'n_estimators': 60}
+        #  same - {'max_depth': 20, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.05, 'n_estimators': 62} model
+        # 0.80, 0.13 - {'max_depth': 20, 'max_features': 4, 'min_samples_leaf': 2, 'min_samples_split': 0.06, 'n_estimators': 64}
+        'RandomForest': {'max_depth': [20],
+                         'n_estimators': [64],
+                         'min_samples_split': [0.075],
                          'min_samples_leaf': [2],
-                         'max_features': [1]
+                         'max_features': [4]
                          },
-        # 'max_iter': 1000, 'learning_rate': 'constant', 'hidden_layer_sizes': 100, 'early_stopping': False, 'batch_size': 10, 'alpha': 0.001, 'activation': 'relu'
-        'NN': {'hidden_layer_sizes': [100],
+        # 0.64, 0.06, overfitting, {'max_iter': 1000, 'learning_rate': 'adaptive', 'hidden_layer_sizes': 500, 'early_stopping': False, 'batch_size': 600, 'alpha': 0.001, 'activation': 'tanh'}
+        #0.62, 0.06, overfitting {'max_iter': 1000, 'learning_rate': 'constant', 'hidden_layer_sizes': 250, 'early_stopping': False, 'batch_size': 600, 'alpha': 0.1, 'activation': 'tanh'}
+        # 0.64, 0.04 {'activation': 'tanh', 'alpha': 0.01, 'batch_size': 600, 'early_stopping': False, 'hidden_layer_sizes': 250, 'learning_rate': 'constant', 'max_iter': 1000} model
+        # best: 0.8, 0.17
+        'NN': {'hidden_layer_sizes': [750],
                'alpha': [0.001],
-               'activation': ['relu'],
-               'batch_size': [10],
+               'activation': ['tanh'],
+               'batch_size': [600],
                'learning_rate': ['constant'],
-               'max_iter': [900],
-               'early_stopping': [False]
-               }
+               'max_iter': [1000],
+               'early_stopping': [True]
+               },
     }
+    # Average time in NFL for all positions: 3.3 years (no data found for defense)
+    # https://www.pro-football-reference.com/years/2020/defense.htm
+    # NOTE: Classification will e.g. label N.Bosa as Bust because it takes total amounts
 
 
-# Average time in NFL for all positions: 3.3 years (no data found for defense)
-# https://www.pro-football-reference.com/years/2020/defense.htm
-# NOTE: Classification will e.g. label N.Bosa as Bust because it takes total amounts
 class DL:
     KEY = 'DL'
     MAX_SACK_THRESHOLD = 3.3 * 5 * 2
@@ -442,10 +456,10 @@ class WR:
     names = [
         "Baseline_best",
         "Baseline_MostFrequent",
-        # "SVC",
-        # "NearestNeighbors",
-        # "DecisionTree",
-        # "RandomForest",
+        "SVC",
+        "NearestNeighbors",
+        "DecisionTree",
+        "RandomForest",
         "NN",
     ]
 

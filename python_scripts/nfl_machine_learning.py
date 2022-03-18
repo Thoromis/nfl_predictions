@@ -99,7 +99,7 @@ def start_ml_pipeline(unit_key=Units.WR.KEY, scoring='roc_auc', random_search=Fa
 
         if random_search:
             print("Running RandomizedSearchCV for %s." % name)
-            gs = RandomizedSearchCV(model, parameterset, cv=kfold, n_iter=300, scoring=scoring, verbose=3, n_jobs=-1,
+            gs = RandomizedSearchCV(model, parameterset, cv=kfold, n_iter=50, scoring=scoring, verbose=3, n_jobs=-1,
                                     return_train_score=True)
         else:
             print("Running GridSearchCV for %s." % name)

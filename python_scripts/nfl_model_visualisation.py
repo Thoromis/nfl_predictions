@@ -57,13 +57,13 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
         # Confusion matrix
         plot_confusion_matrix(estimator=gs_test, X=x_test, y_true=y_test)
         plt.title(label=label + 'confusion matrix')
-        plt.savefig('../ml_model_visualisations/' + unit_key + '/' + name + '_conf_matrix.png')
+        plt.savefig('../ml_model_visualisations/' + unit_key + '/' + name + '_conf_matrix.svg')
         plt.show()
 
         # ROC curve for model
         metrics.plot_roc_curve(gs_test, x_test, y_test)
         plt.title(label=label + 'ROC AUC')
-        plt.savefig('../ml_model_visualisations/' + unit_key + '/' + name + '_roc_curve.png')
+        plt.savefig('../ml_model_visualisations/' + unit_key + '/' + name + '_roc_curve.svg')
         plt.show()
 
         y_test_num = encode_array_numeric(y_test['Classification_All'].values)
@@ -126,7 +126,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     plt.title(label='Test AUC Comparison')
     plt.yticks(ticks=locs, labels=labels, fontsize=9)
     plt.tight_layout()
-    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_test_auc.png')
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_test_auc.svg')
     plt.show()
 
     plt.barh(labels, train_rocauc_scores)
@@ -134,7 +134,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     plt.title(label='Training AUC Comparison')
     plt.yticks(ticks=locs, labels=labels, fontsize=9)
     plt.tight_layout()
-    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_auc.png')
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_auc.svg')
     plt.show()
 
     # Accuracy plots
@@ -143,7 +143,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     plt.title(label='Test Accuracy Comparison')
     plt.yticks(ticks=locs, labels=labels, fontsize=9)
     plt.tight_layout()
-    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_test_acc.png')
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_test_acc.svg')
     plt.show()
 
     plt.barh(labels, train_accuracies)
@@ -151,7 +151,7 @@ def visualise_models(x_train, x_test, y_train, y_test, names_train, names_test, 
     plt.title(label='Training Accuracy Comparison')
     plt.yticks(ticks=locs, labels=labels, fontsize=9)
     plt.tight_layout()
-    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_acc.png')
+    plt.savefig('../ml_model_visualisations/' + unit_key + '/model_comparison_train_acc.svg')
     plt.show()
 
     for idx in range(0, len(labels)):

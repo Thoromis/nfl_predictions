@@ -89,6 +89,23 @@ Feature selection:
   - Needs resampling and scaling with scaler to lead to good results
 
 ## LBs
+feature selection: 
+
+- QB Hurries, Sacks, TFL: You could drop one of it, since the three of them hold some (!) redundant information, but I'll try with all of them first
+- Solo and Assisted tackles, you could also drop one, but they are not too redundant in this case here
+- Int Ret and Forced Fumbles - these two hold barely any shared data points - tricky but probably makes sense to keep both for now
+- All features kept, will drop some in the course of parameter tuning maybe
+
+![here](./feature_selection/LB_featureplot.svg)
+
+### Best Models 
+
+- NN: {'activation': 'tanh', 'alpha': 0.001, 'batch_size': 600, 'early_stopping': True, 'hidden_layer_sizes': 750, 'learning_rate': 'constant', 'max_iter': 1000} model
+  - with resampling, and no scaling (scaling leads to higher auc but way lower accuracy)
+- SVC: kernel: poly, C:10000, degree: 3
+- RF:
+- DT: 
+- KNN:
 
 ## DBs
 No features seem to hold a great deal of redundancy with each other, therefore all the chosen ones will be kept.

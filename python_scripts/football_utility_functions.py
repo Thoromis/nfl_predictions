@@ -61,7 +61,8 @@ def select_features_for_unit(ml_dataset, unit_key):
             ['full_player_name', 'Rush Yard', 'Rush TD', 'Rec Yards', 'Rec TD']]
     if unit_key == Units.LB.KEY:
         return ml_dataset[
-            ['full_player_name', 'Tackle Solo', 'Sack', 'QB Hurry', 'Fumble Forced',]]
+            ['full_player_name', 'Tackle Solo', 'Tackle Assist', 'Sack', 'QB Hurry', 'Fumble Forced', 'Int Ret',
+             'Tackle For Loss', 'Pass Broken Up']]
     if unit_key == Units.DL.KEY:
         return ml_dataset[
             ['full_player_name', 'Tackle Solo', 'Sack', 'QB Hurry', 'Fumble Forced',]]
