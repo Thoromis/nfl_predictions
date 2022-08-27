@@ -117,7 +117,7 @@ class LB:
     classifiers = {
         'Baseline_best': DummyClassifier(),
         'Baseline_MostFrequent': DummyClassifier(),
-        'SVC': SVC(random_state=4711),
+        'SVC': SVC(random_state=4711, max_iter=200),
         'NearestNeighbors': KNeighborsClassifier(),
         'DecisionTree': DecisionTreeClassifier(random_state=4711),
         'RandomForest': RandomForestClassifier(random_state=4711),
